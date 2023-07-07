@@ -12,8 +12,9 @@
 
 	<name>Explore With Me</name>
 	<modules>
-		<module>StatsServer</module>
-		<module>StatsCommonDto</module>
+		<module>statsserver</module>
+		<module>statscommondto</module>
+		<module>statsclient</module>
 	</modules>
 
 	<groupId>ru.practicum</groupId>
