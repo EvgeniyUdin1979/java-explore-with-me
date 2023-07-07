@@ -8,8 +8,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.stereotype.Repository;
 import org.springframework.test.context.jdbc.Sql;
-import ru.practicum.stats.dto.StatsOutDto;
-import ru.practicum.stats.model.ParamGet;
+import ru.practicum.dto.StatsOutDto;
+import ru.practicum.model.ParamGet;
 import ru.practicum.stats.model.Stats;
 import ru.practicum.stats.storage.dao.StatsStorage;
 

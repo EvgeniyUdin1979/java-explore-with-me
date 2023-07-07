@@ -2,8 +2,8 @@ package ru.practicum.stats.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import ru.practicum.stats.dto.StatsOutDto;
-import ru.practicum.stats.model.ParamGet;
+import ru.practicum.dto.StatsOutDto;
+import ru.practicum.model.ParamGet;
 import ru.practicum.stats.model.Stats;
 import ru.practicum.stats.storage.dao.StatsJpaRepository;
 import ru.practicum.stats.storage.dao.StatsStorage;

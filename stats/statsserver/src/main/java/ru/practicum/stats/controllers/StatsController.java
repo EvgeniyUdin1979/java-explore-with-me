@@ -5,10 +5,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.StatsDto;
-import ru.practicum.stats.dto.StatsOutDto;
-import ru.practicum.stats.model.ParamGet;
+import ru.practicum.dto.StatsOutDto;
+import ru.practicum.model.ParamGet;
 import ru.practicum.stats.services.StatsService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +40,9 @@ public class StatsController {
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
             @RequestParam LocalDateTime end,
             @RequestParam Optional<List<String>> uris,
-            @RequestParam(defaultValue = "false") Optional<Boolean> unique) {
+            @RequestParam(defaultValue = "false") Optional<Boolean> unique,
+            HttpServletRequest request) {
+        log.debug("request {}", request);
         ParamGet params = ParamGet.builder()
                 .start(start)
                 .end(end)

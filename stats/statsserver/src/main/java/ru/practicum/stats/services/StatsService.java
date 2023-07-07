@@ -1,8 +1,8 @@
 package ru.practicum.stats.services;
 
 import ru.practicum.dto.StatsDto;
-import ru.practicum.stats.dto.StatsOutDto;
-import ru.practicum.stats.model.ParamGet;
+import ru.practicum.dto.StatsOutDto;
+import ru.practicum.model.ParamGet;
 
 import java.util.List;
 

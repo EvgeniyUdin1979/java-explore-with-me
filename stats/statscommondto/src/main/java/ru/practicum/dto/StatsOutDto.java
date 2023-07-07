@@ -1,11 +1,9 @@
-package ru.practicum.stats.dto;
+package ru.practicum.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Getter
 @ToString
