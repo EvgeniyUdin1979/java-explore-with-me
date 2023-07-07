@@ -40,7 +40,6 @@ public class StatsClient implements BaseClient {
 
     @Override
     public List<StatsOutDto> getStats(ParamGet params) {
-        HttpEntity<Object> requestEntity = new HttpEntity<>(null, defaultHeaders());
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(serverUrl + "/stats")
                 .queryParam("start", "{start}")
                 .queryParam("end", "{end}")
