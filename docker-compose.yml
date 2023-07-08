@@ -1,15 +1,65 @@
-version: '3.1'
+version: '3.8'
 services:
-  stats-server:
+  stats_server:
+    build: stats
+    image: stats_server_image
+    container_name: stats_server_cont
     ports:
       - "9090:9090"
+    depends_on:
+      stats_db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats_db:5432/statsdb
 
-  stats-db:
-    image: postgres:14-alpine
 
-  ewm-service:
+  main_server:
+    build: main
+    image: main_server_image
+    container_name: main_server_cont
     ports:
       - "8080:8080"
+    depends_on:
+      main_db:
+        condition: service_healthy
+    environment:
+        - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/maindb
 
-  ewm-db:
-    image: postgres:14-alpine
+  stats_db:
+    image:
+      postgres:14.8-alpine
+    volumes:
+      - /var/lib/postgresql/data
+    container_name:
+      stats_db_postgres_cont
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d statsdb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6541:5432"
+    environment:
+      - POSTGRES_DB=statsdb
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+
+  main_db:
+    image:
+      postgres:14.8-alpine
+    volumes:
+      - /var/lib/postgresql/data
+    container_name:
+      main_db_postgres_cont
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d maindb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6542:5432"
+    environment:
+      - POSTGRES_DB=maindb
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+
