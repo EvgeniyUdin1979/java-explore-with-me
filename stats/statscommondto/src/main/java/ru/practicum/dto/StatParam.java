@@ -1,4 +1,4 @@
-package ru.practicum.model;
+package ru.practicum.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ParamGet {
+public class StatParam {
     private LocalDateTime start;
     private LocalDateTime end;
     private List<String> requestUris;

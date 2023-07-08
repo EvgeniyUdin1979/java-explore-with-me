@@ -3,9 +3,9 @@ package ru.practicum.stats.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.practicum.dto.StatParam;
 import ru.practicum.dto.StatsDto;
 import ru.practicum.dto.StatsOutDto;
-import ru.practicum.model.ParamGet;
 import ru.practicum.stats.exceptions.RequestException;
 import ru.practicum.stats.model.Stats;
 import ru.practicum.stats.storage.dao.StatsStorage;
@@ -33,7 +33,7 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public List<StatsOutDto> findAll(ParamGet params) {
+    public List<StatsOutDto> findAll(StatParam params) {
         LocalDateTime start = params.getStart();
         LocalDateTime end = params.getEnd();
         if (start.isAfter(LocalDateTime.now()) || end.isBefore(start)) {

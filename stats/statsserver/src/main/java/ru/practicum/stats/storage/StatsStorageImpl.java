@@ -2,8 +2,8 @@ package ru.practicum.stats.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import ru.practicum.dto.StatParam;
 import ru.practicum.dto.StatsOutDto;
-import ru.practicum.model.ParamGet;
 import ru.practicum.stats.model.Stats;
 import ru.practicum.stats.storage.dao.StatsJpaRepository;
 import ru.practicum.stats.storage.dao.StatsStorage;
@@ -26,7 +26,7 @@ public class StatsStorageImpl implements StatsStorage {
     }
 
     @Override
-    public List<StatsOutDto> get(ParamGet param) {
+    public List<StatsOutDto> get(StatParam param) {
         if (param.isUniqueIp()) {
             if (param.getRequestUris() != null && !param.getRequestUris().isEmpty()) {
                 return repository.findAllDistinctByAddressIpAndRequestTimeBetweenAndRequestUrl(

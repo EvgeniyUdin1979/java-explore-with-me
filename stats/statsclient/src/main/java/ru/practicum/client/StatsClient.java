@@ -6,9 +6,9 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import ru.practicum.dto.StatParam;
 import ru.practicum.dto.StatsDto;
 import ru.practicum.dto.StatsOutDto;
-import ru.practicum.model.ParamGet;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -17,12 +17,12 @@ import java.util.Map;
 @Service
 public class StatsClient implements BaseClient {
     private final String serverUrl = "http://localhost:9090";
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RestTemplate restTemplate;
 
-    public StatsClient() {
-        restTemplate = new RestTemplate();
-    }
+    private final String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public HttpStatus sendStats(SendParams params) {
@@ -39,7 +39,7 @@ public class StatsClient implements BaseClient {
     }
 
     @Override
-    public List<StatsOutDto> getStats(ParamGet params) {
+    public List<StatsOutDto> getStats(StatParam params) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(serverUrl + "/stats")
                 .queryParam("start", "{start}")
                 .queryParam("end", "{end}")
@@ -56,8 +56,8 @@ public class StatsClient implements BaseClient {
         Object response = restTemplate.getForObject(
                 uriString,
                 Object.class,
-                Map.of("start", params.getStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                        "end", params.getEnd().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                Map.of("start", params.getStart().format(DateTimeFormatter.ofPattern(dateTimeFormat)),
+                        "end", params.getEnd().format(DateTimeFormatter.ofPattern(dateTimeFormat)),
                         "unique", params.isUniqueIp()));
 
         return objectMapper.convertValue(response, new TypeReference<>() {

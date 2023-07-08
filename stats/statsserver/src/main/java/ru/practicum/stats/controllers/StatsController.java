@@ -1,12 +1,13 @@
 package ru.practicum.stats.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.dto.StatParam;
 import ru.practicum.dto.StatsDto;
 import ru.practicum.dto.StatsOutDto;
-import ru.practicum.model.ParamGet;
 import ru.practicum.stats.services.StatsService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,12 +16,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+
 @RestController
 @Slf4j
 public class StatsController {
 
+    private final String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+
     private final StatsService service;
 
+    @Autowired
     public StatsController(StatsService service) {
         this.service = service;
     }
@@ -35,15 +40,15 @@ public class StatsController {
 
     @GetMapping("/stats")
     public List<StatsOutDto> getStats(
-            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+            @DateTimeFormat(pattern = dateTimeFormat)
             @RequestParam LocalDateTime start,
-            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+            @DateTimeFormat(pattern = dateTimeFormat)
             @RequestParam LocalDateTime end,
             @RequestParam Optional<List<String>> uris,
             @RequestParam(defaultValue = "false") Optional<Boolean> unique,
             HttpServletRequest request) {
         log.debug("request {}", request);
-        ParamGet params = ParamGet.builder()
+        StatParam params = StatParam.builder()
                 .start(start)
                 .end(end)
                 .requestUris(uris.orElse(List.of()))
