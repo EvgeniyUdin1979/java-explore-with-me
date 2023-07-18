@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.users.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class UserStorageImpl implements UserStorageDao{
@@ -31,5 +32,10 @@ public class UserStorageImpl implements UserStorageDao{
     @Override
     public List<User> find(List<Long> ids, int from, int size) {
         return repository.findAllByIdIn(ids, PageRequest.of(from, size)).toList();
+    }
+
+    @Override
+    public Optional<User> findById(long id) {
+        return repository.findById(id);
     }
 }

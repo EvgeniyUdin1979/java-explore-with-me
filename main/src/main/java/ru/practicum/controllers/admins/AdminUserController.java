@@ -18,6 +18,7 @@ import java.util.Optional;
 @Slf4j
 @RestController
 @RequestMapping("/admin/users")
+@Validated
 public class AdminUserController {
 
     private final UserService userService;
@@ -37,7 +38,6 @@ public class AdminUserController {
 
     @GetMapping
     @ResponseStatus(code = HttpStatus.OK)
-    @Validated
     public List<UserOutDto> getUsers(
             @RequestParam Optional<List<Long>> ids,
             @PositiveOrZero(message = "Параметр from должен быть больше или равен нулю.")

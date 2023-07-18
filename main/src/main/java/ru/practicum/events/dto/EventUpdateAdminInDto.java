@@ -7,7 +7,6 @@ import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.events.model.Location;
 import ru.practicum.events.model.StateAction;
-import ru.practicum.events.validate.EventDateConstraint;
 
 import java.time.LocalDateTime;
 
@@ -25,14 +24,13 @@ public class EventUpdateAdminInDto {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @EventDateConstraint
     private LocalDateTime eventDate;
 
     private Location location;
 
     private Boolean paid;
 
-    private Long participantLimit;
+    private Integer participantLimit;
 
     private Boolean requestModeration;
 

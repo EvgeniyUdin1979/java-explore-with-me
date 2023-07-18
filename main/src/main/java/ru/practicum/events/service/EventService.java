@@ -8,7 +8,7 @@ import ru.practicum.request.dto.ParticipationRequestOutDto;
 import java.util.List;
 
 public interface EventService {
-    EventOutShortDto add(EventInDto inDto, long userId);
+    EventOutFullDto add(EventInDto inDto, long userId);
 
     EventOutFullDto update(EventUpdateInDto inDto, long userid, long eventId);
 

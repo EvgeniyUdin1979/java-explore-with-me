@@ -1,9 +1,11 @@
 package ru.practicum.categories.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import ru.practicum.categories.model.Category;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,12 +24,17 @@ public class CategoryStorageImpl implements CategoryStorageDao {
     }
 
     @Override
-    public Optional<Category> findDyId(long id) {
+    public Optional<Category> findById(long id) {
         return repository.findById(id);
     }
 
     @Override
     public void delete(long id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<Category> findAll(int from, int size) {
+        return repository.findAll(PageRequest.of(from, size)).toList();
     }
 }

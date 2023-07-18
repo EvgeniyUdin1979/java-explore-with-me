@@ -12,6 +12,7 @@ import ru.practicum.categories.util.CategoryMapping;
 import ru.practicum.exceptions.RequestException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -32,7 +33,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryOutDto update(CategoryInDto inDto, final long catId) {
-        Category result = storage.findDyId(catId)
+        Category result = storage.findById(catId)
                 .orElseThrow(() -> new RequestException(
                         String.format("Категория с id %d не найдена.", catId),
                         HttpStatus.NOT_FOUND, "Ошибка при создании категории."));
@@ -44,7 +45,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteById(final long catId) {
         String reason = "Ошибка при удалении категории.";
-        Category result = storage.findDyId(catId)
+        Category result = storage.findById(catId)
                 .orElseThrow(() -> new RequestException(
                         String.format("Категория с id %d не найдена.", catId),
                         HttpStatus.NOT_FOUND, reason));
@@ -58,12 +59,18 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryOutDto> findAll(int from, int size) {
-        return null;
+        List <Category> categories = storage.findAll(from, size);
+        return categories.stream().map(CategoryMapping::mapToOut).collect(Collectors.toList());
     }
 
     @Override
     public CategoryOutDto findById(int catId) {
-        return null;
+        Category category = storage.findById(catId).orElseThrow(() -> {
+            String message = String.format("Категория с id %d не найдена.", catId);
+            log.warn(message);
+            return new RequestException(message, HttpStatus.NOT_FOUND, "Запрос содержит не корректные данные");
+        });
+        return CategoryMapping.mapToOut(category);
     }
 
 }

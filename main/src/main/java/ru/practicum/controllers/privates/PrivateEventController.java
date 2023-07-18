@@ -1,35 +1,43 @@
 package ru.practicum.controllers.privates;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.BaseClient;
+import ru.practicum.client.SendParams;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.service.EventService;
 import ru.practicum.request.dto.ParticipationRequestOutDto;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @Slf4j
 @RequestMapping("/users")
+@Validated
 public class PrivateEventController {
 
     private final EventService service;
+    private final BaseClient client;
 
-    @Autowired
-    public PrivateEventController(EventService service) {
+    public PrivateEventController(EventService service, BaseClient client) {
         this.service = service;
+        this.client = client;
     }
 
     @PostMapping("/{userId}/events")
-    public EventOutShortDto addEvent(
+    @ResponseStatus(HttpStatus.CREATED)
+    public EventOutFullDto addEvent(
             @Valid @RequestBody EventInDto inDto,
             @Positive(message = "validation.userIdPositive")
             @PathVariable("userId") long userId) {
-        EventOutShortDto result = service.add(inDto, userId);
+        EventOutFullDto result = service.add(inDto, userId);
         log.info("Добавлено мероприятие {}.", result);
         return result;
     }
@@ -53,20 +61,34 @@ public class PrivateEventController {
             @PositiveOrZero(message = "validation.fromPositiveOrZero")
             @RequestParam("from") int from,
             @Positive(message = "validation.sizePositive")
-            @RequestParam("from") int size) {
+            @RequestParam("size") int size,
+            HttpServletRequest servletRequest) {
         List<EventOutShortDto> result = service.getAllByUserId(userid, from, size);
         log.info("Получены события для пользователя с id {} : {}", userid, result);
+        client.sendStats(SendParams.builder()
+                .created(LocalDateTime.now())
+                .ip(servletRequest.getRemoteAddr())
+                .uri("/events")
+                .app(servletRequest.getRequestURI())
+                .build());
         return result;
     }
 
     @GetMapping("/{userId}/events/{eventId}")
-    public EventOutFullDto getEventDyUserId(
+    public EventOutFullDto getEventByUserId(
             @Positive(message = "validation.userIdPositive")
             @PathVariable("userId") long userid,
             @Positive(message = "validation.eventIdPositive")
-            @PathVariable("eventId") long eventId) {
+            @PathVariable("eventId") long eventId,
+            HttpServletRequest servletRequest) {
         EventOutFullDto result = service.getByUserId(userid, eventId);
         log.info("Получено событие с {} для пользователя с id {}", result, userid);
+        client.sendStats(SendParams.builder()
+                .created(LocalDateTime.now())
+                .ip(servletRequest.getRemoteAddr())
+                .uri("/events")
+                .app(servletRequest.getRequestURI())
+                .build());
         return result;
 
     }

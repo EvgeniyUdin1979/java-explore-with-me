@@ -12,13 +12,15 @@ import java.util.Set;
 @Entity
 @Table(name = "events")
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
+@Builder
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(length = 2000, nullable = false)
     private String annotation;
@@ -32,6 +34,8 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime created;
 
+    private LocalDateTime publishedOn;
+
     private boolean paid;
 
     @Column(name = "participant_limit", nullable = false)
@@ -39,6 +43,9 @@ public class Event {
 
     @Column(name = "request_moderation")
     private boolean requestModeration;
+
+    @Enumerated
+    private State state;
 
     @Column(nullable = false, length = 120)
     private String title;
@@ -55,5 +62,8 @@ public class Event {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
     private Set<Request> requests;
+
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL)
+    private Location location;
 
 }

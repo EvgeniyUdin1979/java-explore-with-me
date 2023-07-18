@@ -4,6 +4,7 @@ import java.util.Optional;
 
 public enum Status {
     CONFIRMED,
+    CANCELED,
     PENDING;
     public static Optional<Status> from(String stringState) {
         for (Status state : values()) {

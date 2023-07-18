@@ -2,6 +2,7 @@ package ru.practicum.controllers.publics;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.categories.dto.CategoryOutDto;
 import ru.practicum.categories.service.CategoryService;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/categories")
+@Validated
 public class PublicCategoriesController {
 
     private final CategoryService service;
@@ -27,7 +29,7 @@ public class PublicCategoriesController {
             @PositiveOrZero(message = "{validation.fromPositiveOrZero}")
             @RequestParam("from") int from,
             @Positive(message = "{validation.sizePositive}")
-            @RequestParam("from") int size){
+            @RequestParam("size") int size){
         List<CategoryOutDto> result = service.findAll(from, size);
         log.info("Получены категории {}", result);
         return result;

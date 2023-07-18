@@ -3,6 +3,7 @@ package ru.practicum.controllers.admins;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.events.dto.EventOutFullDto;
 import ru.practicum.events.dto.EventUpdateAdminInDto;
@@ -22,13 +23,12 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequestMapping("/admin/events")
+@Validated
 public class AdminEventController {
-
-    private final EventService service;
-
-    @Autowired
-    public AdminEventController(EventService service) {
-        this.service = service;
+    private final EventService eventService;
+@Autowired
+    public AdminEventController(EventService eventService) {
+        this.eventService = eventService;
     }
 
     @GetMapping
@@ -43,7 +43,7 @@ public class AdminEventController {
             @PositiveOrZero(message = "{validation.fromPositiveOrZero}")
             @RequestParam("from") int from,
             @Positive(message = "{validation.sizePositive}")
-            @RequestParam("from") int size) {
+            @RequestParam("size") int size) {
         List<State> stateList = states.orElse(List.of()).stream()
                 .filter(Optional::isPresent)
                 .map(s -> State.from(s.get()))
@@ -62,7 +62,7 @@ public class AdminEventController {
                 .from(from)
                 .size(size)
                 .build();
-        List<EventOutFullDto> result = service.getAllForAdmin(params);
+        List<EventOutFullDto> result = eventService.getAllForAdmin(params);
         log.info("Получен список событий для админа {}", result);
         return result;
     }
@@ -72,7 +72,7 @@ public class AdminEventController {
             @Valid @RequestBody EventUpdateAdminInDto inDto,
             @Positive(message = "validation.eventIdPositive")
             @PathVariable("eventId") long eventId){
-        EventOutFullDto result =  service.updateEventByAdmin(inDto, eventId);
+        EventOutFullDto result =  eventService.updateEventByAdmin(inDto, eventId);
         log.info("Админ обновил мероприятие с id {} : {}", eventId, result);
         return result;
 

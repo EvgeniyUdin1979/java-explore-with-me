@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.practicum.exceptions.RequestException;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -36,6 +38,21 @@ public class CustomAdvice {
     ResponseEntity<ApiError> handleException(MethodArgumentNotValidException ex) {
         List<String> errorMessages = ex.getAllErrors().stream()
                 .map(e -> e.getDefaultMessage())
+                .sorted()
+                .collect(Collectors.toList());
+        StringBuilder builder = new StringBuilder();
+        for (String errorMessage : errorMessages) {
+            builder.append(errorMessage);
+        }
+        String message = builder.toString().trim();
+        log.warn(message);
+        return getResponse(HttpStatus.BAD_REQUEST, "Некорректные параметры запроса.", message);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    ResponseEntity<ApiError> handleException(ConstraintViolationException ex) {
+        List<String> errorMessages = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
                 .sorted()
                 .collect(Collectors.toList());
         StringBuilder builder = new StringBuilder();
