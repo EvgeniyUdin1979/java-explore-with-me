@@ -49,7 +49,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new RequestException(
                         String.format("Категория с id %d не найдена.", catId),
                         HttpStatus.NOT_FOUND, reason));
-        if (!result.getEvents().isEmpty()){
+        if (!result.getEvents().isEmpty()) {
             String message = String.format("Категория id %d содержит элементы и не доступна для изменения", catId);
             log.warn(message);
             throw new RequestException(message, HttpStatus.CONFLICT, reason);
@@ -59,7 +59,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryOutDto> findAll(int from, int size) {
-        List <Category> categories = storage.findAll(from, size);
+        List<Category> categories = storage.findAll(from, size);
         return categories.stream().map(CategoryMapping::mapToOut).collect(Collectors.toList());
     }
 

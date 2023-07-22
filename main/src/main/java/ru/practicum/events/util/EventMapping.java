@@ -32,9 +32,9 @@ public class EventMapping {
                 .description(inDto.getDescription())
                 .eventDate(inDto.getEventDate())
                 .location(inDto.getLocation())
-                .paid(inDto.getPaid())
-                .participantLimit(inDto.getParticipantLimit())
-                .requestModeration(inDto.getRequestModeration())
+                .paid(inDto.getPaid() != null && inDto.getPaid())
+                .participantLimit(inDto.getParticipantLimit() == null ? 0 : inDto.getParticipantLimit())
+                .requestModeration(inDto.getRequestModeration() == null || inDto.getRequestModeration())
                 .state(State.PENDING)
                 .title(inDto.getTitle())
                 .initiator(user)
@@ -47,7 +47,7 @@ public class EventMapping {
         return EventOutFullDto.builder()
                 .annotation(event.getAnnotation())
                 .category(CategoryMapping.mapToOut(event.getCategory()))
-                .confirmedRequests(event.getRequests() == null? 0 : event.getRequests().stream().filter(r -> r.getStatus() == Status.CONFIRMED).count())
+                .confirmedRequests(event.getRequests() == null ? 0 : event.getRequests().stream().filter(r -> r.getStatus() == Status.CONFIRMED).count())
                 .createdOn(event.getCreated().format(DateTimeFormatter.ofPattern(dateTameFormat)))
                 .description(event.getDescription())
                 .eventDate(event.getEventDate().format(DateTimeFormatter.ofPattern(dateTameFormat)))
@@ -56,7 +56,7 @@ public class EventMapping {
                 .location(event.getLocation())
                 .paid(event.isPaid())
                 .participantLimit(event.getParticipantLimit())
-                .publishedOn(event.getPublishedOn() == null? null : event.getPublishedOn().format(DateTimeFormatter.ofPattern(dateTameFormat)))
+                .publishedOn(event.getPublishedOn() == null ? null : event.getPublishedOn().format(DateTimeFormatter.ofPattern(dateTameFormat)))
                 .requestModeration(event.isRequestModeration())
                 .state(event.getState())
                 .title(event.getTitle())
@@ -116,7 +116,7 @@ public class EventMapping {
         }
         if (updateInDto.getStateAction() != null) {
             event.setState(getState(updateInDto.getStateAction()));
-            if (updateInDto.getStateAction() == StateAction.PUBLISH_EVENT){
+            if (updateInDto.getStateAction() == StateAction.PUBLISH_EVENT) {
                 event.setPublishedOn(LocalDateTime.now());
             }
         }
@@ -150,7 +150,7 @@ public class EventMapping {
             case CANCEL_REVIEW:
                 return State.CANCELED;
             case REJECT_EVENT:
-                return State.CANCELED;
+                return State.REJECT;
             case PUBLISH_EVENT:
                 return State.PUBLISHED;
             default:

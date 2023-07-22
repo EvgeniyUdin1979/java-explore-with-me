@@ -59,9 +59,9 @@ public class PrivateEventController {
             @Positive(message = "validation.userIdPositive")
             @PathVariable("userId") long userid,
             @PositiveOrZero(message = "validation.fromPositiveOrZero")
-            @RequestParam("from") int from,
+            @RequestParam(value = "from", defaultValue = "0") int from,
             @Positive(message = "validation.sizePositive")
-            @RequestParam("size") int size,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             HttpServletRequest servletRequest) {
         List<EventOutShortDto> result = service.getAllByUserId(userid, from, size);
         log.info("Получены события для пользователя с id {} : {}", userid, result);

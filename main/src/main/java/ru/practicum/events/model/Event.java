@@ -2,6 +2,7 @@ package ru.practicum.events.model;
 
 import lombok.*;
 import ru.practicum.categories.model.Category;
+import ru.practicum.compilations.model.Compilation;
 import ru.practicum.request.model.Request;
 import ru.practicum.users.model.User;
 
@@ -25,7 +26,7 @@ public class Event {
     @Column(length = 2000, nullable = false)
     private String annotation;
 
-    @Column(length = 5000, nullable = false)
+    @Column(length = 7000, nullable = false)
     private String description;
 
     @Column(name = "event_date", nullable = false)
@@ -61,9 +62,14 @@ public class Event {
     private Category category;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
+    @ToString.Exclude
     private Set<Request> requests;
 
-    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL)
+    @Embedded
     private Location location;
+
+    @ManyToMany(mappedBy = "events", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private Set<Compilation> compilations;
 
 }

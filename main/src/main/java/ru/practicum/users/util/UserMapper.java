@@ -15,7 +15,7 @@ public class UserMapper {
                 .build();
     }
 
-    public UserOutDto mapToOut(User user){
+    public UserOutDto mapToOut(User user) {
         return UserOutDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -23,7 +23,7 @@ public class UserMapper {
                 .build();
     }
 
-    public UserOutShortDto mapToOutShort(User user){
+    public UserOutShortDto mapToOutShort(User user) {
         return UserOutShortDto.builder()
                 .id(user.getId())
                 .name(user.getName())

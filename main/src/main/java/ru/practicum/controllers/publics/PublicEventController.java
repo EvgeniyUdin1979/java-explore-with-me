@@ -13,6 +13,8 @@ import ru.practicum.events.model.Sort;
 import ru.practicum.events.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Future;
+import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
@@ -40,16 +42,18 @@ public class PublicEventController {
             @RequestParam("text") Optional<String> text,
             @RequestParam("categories") Optional<List<Long>> categories,
             @RequestParam("paid") Optional<Boolean> paid,
+            @PastOrPresent(message = "{validation.rangeStartPastOrPresent}")
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-            @RequestParam("rangeStart") LocalDateTime rangeStart,
+            @RequestParam(value = "rangeStart", required = false) LocalDateTime rangeStart,
+            @Future(message = "{validation.rangeEndFuture}")
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-            @RequestParam("rangeEnd") LocalDateTime rangeEnd,
+            @RequestParam(value = "rangeEnd", required = false) LocalDateTime rangeEnd,
             @RequestParam(value = "onlyAvailable", defaultValue = "false") boolean onlyAvailable,
             @RequestParam("sort") Optional<String> sort,
             @PositiveOrZero(message = "{validation.fromPositiveOrZero}")
             @RequestParam(value = "from", defaultValue = "0") int from,
             @Positive(message = "{validation.sizePositive}")
-            @RequestParam(value = "size", defaultValue = "0") int size,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             HttpServletRequest servletRequest) {
 
         List<Long> categoryIdLIst = new ArrayList<>(categories.orElse(List.of()));
@@ -78,7 +82,7 @@ public class PublicEventController {
     }
 
     @GetMapping("/{eventId}")
-    private EventOutFullDto getEventByEventIdForPublic(
+    public EventOutFullDto getEventByEventIdForPublic(
             @Positive(message = "validation.eventIdPositive")
             @PathVariable("eventId") long eventId,
             HttpServletRequest servletRequest) {
@@ -87,7 +91,7 @@ public class PublicEventController {
         client.sendStats(SendParams.builder()
                 .created(LocalDateTime.now())
                 .ip(servletRequest.getRemoteAddr())
-                .uri(String.format("/events/%d)", eventId))
+                .uri(String.format("/events/%d", eventId))
                 .app(servletRequest.getRequestURI())
                 .build());
         return result;

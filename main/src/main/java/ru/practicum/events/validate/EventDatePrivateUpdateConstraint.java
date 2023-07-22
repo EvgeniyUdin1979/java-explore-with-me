@@ -7,11 +7,13 @@ import java.lang.annotation.*;
 
 
 @Documented
-@Constraint(validatedBy = EventDateValidator.class)
-@Target( { ElementType.METHOD, ElementType.FIELD, })
+@Constraint(validatedBy = EventDatePrivateUpdateValidator.class)
+@Target({ElementType.METHOD, ElementType.FIELD,})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EventDateConstraint {
-    String message() default "validation.EventDateConstraint";
+public @interface EventDatePrivateUpdateConstraint {
+    String message() default "{validation.EventDatePrivateUpdateConstraint}";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

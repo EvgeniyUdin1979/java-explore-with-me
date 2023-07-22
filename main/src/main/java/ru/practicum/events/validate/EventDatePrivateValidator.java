@@ -4,9 +4,9 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.time.LocalDateTime;
 
-public class EventDateValidator implements ConstraintValidator<EventDateConstraint, LocalDateTime> {
+public class EventDatePrivateValidator implements ConstraintValidator<EventDatePrivateConstraint, LocalDateTime> {
     @Override
-    public void initialize(EventDateConstraint constraintAnnotation) {
+    public void initialize(EventDatePrivateConstraint constraintAnnotation) {
         ConstraintValidator.super.initialize(constraintAnnotation);
     }
 

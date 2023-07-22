@@ -8,6 +8,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.practicum.exceptions.RequestException;
 
 import javax.validation.ConstraintViolation;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 @Slf4j
 public class CustomAdvice {
+
+    String reasonBadRequest = "Некорректные параметры запроса.";
 
     @ExceptionHandler(RequestException.class)
     ResponseEntity<ApiError> handler(RequestException e) {
@@ -46,7 +49,7 @@ public class CustomAdvice {
         }
         String message = builder.toString().trim();
         log.warn(message);
-        return getResponse(HttpStatus.BAD_REQUEST, "Некорректные параметры запроса.", message);
+        return getResponse(HttpStatus.BAD_REQUEST, reasonBadRequest, message);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -61,7 +64,14 @@ public class CustomAdvice {
         }
         String message = builder.toString().trim();
         log.warn(message);
-        return getResponse(HttpStatus.BAD_REQUEST, "Некорректные параметры запроса.", message);
+        return getResponse(HttpStatus.BAD_REQUEST, reasonBadRequest, message);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> typeMismatchException(MethodArgumentTypeMismatchException ex) {
+        String message = String.format("Параметр %s не является числом.", ex.getName());
+        log.warn("Параметр {} не является числом.", ex.getName());
+        return getResponse(HttpStatus.BAD_REQUEST, reasonBadRequest, message);
     }
 
     private ResponseEntity<ApiError> getResponse(@NonNull HttpStatus status, String reason, String message) {

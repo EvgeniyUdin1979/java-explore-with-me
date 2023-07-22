@@ -8,7 +8,12 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "requests")
+@Table(name = "requests",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "requester_event_unique",
+                        columnNames = {"event_id", "requester_id"})
+        })
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -25,7 +30,7 @@ public class Request {
     private LocalDateTime created;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", nullable = false, unique = true)
+    @JoinColumn(name = "event_id", nullable = false)
     @ToString.Exclude
     private Event event;
 

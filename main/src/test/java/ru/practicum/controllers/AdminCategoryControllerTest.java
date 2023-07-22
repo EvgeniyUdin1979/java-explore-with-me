@@ -39,7 +39,7 @@ class AdminCategoryControllerTest {
 
     @Test
     void addFailTest() throws Exception {
-        mvc.perform(post(baseUrl )
+        mvc.perform(post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\": \"\"}"))
                 .andDo(print()).andExpectAll(

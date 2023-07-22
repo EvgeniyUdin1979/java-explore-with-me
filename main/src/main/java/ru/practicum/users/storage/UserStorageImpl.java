@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class UserStorageImpl implements UserStorageDao{
+public class UserStorageImpl implements UserStorageDao {
 
     private final UserRepository repository;
 
@@ -30,9 +30,15 @@ public class UserStorageImpl implements UserStorageDao{
     }
 
     @Override
-    public List<User> find(List<Long> ids, int from, int size) {
+    public List<User> findAllByIdIn(List<Long> ids, int from, int size) {
         return repository.findAllByIdIn(ids, PageRequest.of(from, size)).toList();
     }
+
+    @Override
+    public List<User> findAll(int from, int size) {
+        return repository.findAll(PageRequest.of(from, size)).toList();
+    }
+
 
     @Override
     public Optional<User> findById(long id) {

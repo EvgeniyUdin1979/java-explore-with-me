@@ -27,9 +27,9 @@ public class PublicCategoriesController {
     @GetMapping
     public List<CategoryOutDto> getAllCategories(
             @PositiveOrZero(message = "{validation.fromPositiveOrZero}")
-            @RequestParam("from") int from,
+            @RequestParam(value = "from", defaultValue = "0") int from,
             @Positive(message = "{validation.sizePositive}")
-            @RequestParam("size") int size){
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         List<CategoryOutDto> result = service.findAll(from, size);
         log.info("Получены категории {}", result);
         return result;
@@ -38,7 +38,7 @@ public class PublicCategoriesController {
     @GetMapping("{catId}")
     public CategoryOutDto getCategoryById(
             @Positive(message = "{validation.catIdPositive}")
-            @PathVariable("catId") int catId){
+            @PathVariable("catId") int catId) {
         CategoryOutDto result = service.findById(catId);
         log.info("Получена категория {}", result);
         return result;

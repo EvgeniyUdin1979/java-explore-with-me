@@ -20,4 +20,6 @@ public interface EventStorageDao {
     List<Event> findAllForAdmin(EventAdminSearchParams params);
 
     List<Event> findAllForPublic(EventPublicSearchParams params);
+
+    List<Event> findAllByIds(List<Long> eventIds);
 }

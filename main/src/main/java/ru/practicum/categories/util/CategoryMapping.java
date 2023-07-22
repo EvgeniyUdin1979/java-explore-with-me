@@ -8,13 +8,13 @@ import ru.practicum.categories.model.Category;
 @UtilityClass
 public class CategoryMapping {
 
-    public Category mapToEntity(CategoryInDto inDto){
+    public Category mapToEntity(CategoryInDto inDto) {
         return Category.builder()
                 .name(inDto.getName())
                 .build();
     }
 
-    public CategoryOutDto mapToOut(Category category){
+    public CategoryOutDto mapToOut(Category category) {
         return new CategoryOutDto(category.getId(), category.getName());
     }
 }

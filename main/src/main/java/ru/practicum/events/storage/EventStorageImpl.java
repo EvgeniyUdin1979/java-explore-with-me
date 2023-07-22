@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import ru.practicum.events.model.*;
-import ru.practicum.request.model.QRequest;
-import ru.practicum.request.storage.RequestRepository;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
@@ -20,14 +18,12 @@ import java.util.Optional;
 public class EventStorageImpl implements EventStorageDao {
 
     private final EventRepository eventRepository;
-    private final RequestRepository requestRepository;
 
     private final EntityManager em;
 
     @Autowired
-    public EventStorageImpl(EventRepository eventRepository, RequestRepository requestRepository, EntityManager em) {
+    public EventStorageImpl(EventRepository eventRepository, EntityManager em) {
         this.eventRepository = eventRepository;
-        this.requestRepository = requestRepository;
         this.em = em;
     }
 
@@ -85,20 +81,18 @@ public class EventStorageImpl implements EventStorageDao {
         JPAQueryFactory queryFactory = new JPAQueryFactory(em);
         DateExpression<LocalDateTime> date = Expressions.asDate(LocalDateTime.now());
         QEvent event = QEvent.event;
-        QRequest request =QRequest.request;
-        JPAQuery<Event> eventJPAQuery = queryFactory.selectFrom(event).innerJoin(event.requests, request);
-        JPAQuery<Event> query = queryFactory.selectFrom(event);
+        JPAQuery<Event> eventJPAQuery = queryFactory.selectFrom(event);
 
         eventJPAQuery.where(event.state.eq(State.PUBLISHED));
-        if (params.getText() != null){
-            eventJPAQuery.where(event.annotation.containsIgnoreCase(params.getText()));
-            eventJPAQuery.where(event.description.containsIgnoreCase(params.getText()));
+        if (params.getText() != null) {
+            eventJPAQuery.where(event.annotation.containsIgnoreCase(params.getText().toLowerCase()).or(event.description.containsIgnoreCase(params.getText().toLowerCase())));
+//            eventJPAQuery.where();
         }
-        if (params.getCategories() != null && params.getCategories().isEmpty()){
+        if (params.getCategories() != null && !params.getCategories().isEmpty()) {
             eventJPAQuery.where(event.category.id.in(params.getCategories()));
         }
         if (params.getPaid() != null) {
-            eventJPAQuery.where(event.paid.gt(params.getPaid()));
+            eventJPAQuery.where(event.paid.eq(params.getPaid()));
         }
         if (params.getRangeStart() != null) {
             eventJPAQuery.where(event.eventDate.after(params.getRangeStart()));
@@ -112,5 +106,10 @@ public class EventStorageImpl implements EventStorageDao {
                 .offset(params.getFrom())
                 .limit(params.getSize())
                 .fetch();
+    }
+
+    @Override
+    public List<Event> findAllByIds(List<Long> eventIds) {
+        return eventRepository.findAllByIdIn(eventIds);
     }
 }

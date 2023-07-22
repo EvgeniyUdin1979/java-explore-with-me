@@ -23,10 +23,10 @@ public class User {
     private long id;
 
 
-    @Column(nullable = false, length = 130, unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 250)
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "initiator")

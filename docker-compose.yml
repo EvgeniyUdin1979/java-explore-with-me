@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  stats_server:
+  stats-server:
     build: stats
     image: stats_server_image
     container_name: stats_server_cont
@@ -13,7 +13,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://stats_db:5432/statsdb
 
 
-  main_server:
+  main-server:
     build: main
     image: main_server_image
     container_name: main_server_cont
@@ -23,7 +23,8 @@ services:
       main_db:
         condition: service_healthy
     environment:
-        - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/maindb
+        - SPRING_DATASOURCE_URL=jdbc:postgresql://main_db:5432/maindb
+        - STATS_SERVER_URL=http://stats-server:9090
 
   stats_db:
     image:

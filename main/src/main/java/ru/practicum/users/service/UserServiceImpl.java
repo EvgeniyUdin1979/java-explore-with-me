@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exceptions.RequestException;
 import ru.practicum.users.dto.UserInDto;
 import ru.practicum.users.dto.UserOutDto;
@@ -33,14 +34,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public List<UserOutDto> get(Optional<List<Long>> ids, int from, int size) {
-        List<Long> listIds = ids.orElse(List.of());
-        return storage.find(listIds, from, size).stream()
-                .map(UserMapper::mapToOut)
-                .collect(Collectors.toList());
+        return ids.map(longs -> storage.findAllByIdIn(longs, from, size).stream()
+                        .map(UserMapper::mapToOut)
+                        .collect(Collectors.toList()))
+                .orElseGet(() -> storage.findAll(from, size).stream()
+                        .map(UserMapper::mapToOut)
+                        .collect(Collectors.toList()));
     }
 
     @Override
+    @Transactional
     public void deleteById(long userId) {
         try {
             storage.delete(userId);

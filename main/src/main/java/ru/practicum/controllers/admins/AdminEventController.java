@@ -12,6 +12,8 @@ import ru.practicum.events.model.State;
 import ru.practicum.events.service.EventService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Future;
+import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
@@ -26,7 +28,8 @@ import java.util.stream.Collectors;
 @Validated
 public class AdminEventController {
     private final EventService eventService;
-@Autowired
+
+    @Autowired
     public AdminEventController(EventService eventService) {
         this.eventService = eventService;
     }
@@ -37,13 +40,15 @@ public class AdminEventController {
             @RequestParam("states") Optional<List<Optional<String>>> states,
             @RequestParam("categories") Optional<List<Long>> categories,
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-            @RequestParam("rangeStart") LocalDateTime rangeStart,
+            @PastOrPresent(message = "{validation.rangeStartPastOrPresent}")
+            @RequestParam(value = "rangeStart", required = false) LocalDateTime rangeStart,
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-            @RequestParam("rangeEnd") LocalDateTime rangeEnd,
+            @Future(message = "{validation.rangeEndFuture}")
+            @RequestParam(value = "rangeEnd", required = false) LocalDateTime rangeEnd,
             @PositiveOrZero(message = "{validation.fromPositiveOrZero}")
-            @RequestParam("from") int from,
+            @RequestParam(value = "from", defaultValue = "0") int from,
             @Positive(message = "{validation.sizePositive}")
-            @RequestParam("size") int size) {
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         List<State> stateList = states.orElse(List.of()).stream()
                 .filter(Optional::isPresent)
                 .map(s -> State.from(s.get()))
@@ -68,13 +73,12 @@ public class AdminEventController {
     }
 
     @PatchMapping("/{eventId}")
-    private EventOutFullDto updateEventByAdmin(
+    public EventOutFullDto updateEventByAdmin(
             @Valid @RequestBody EventUpdateAdminInDto inDto,
             @Positive(message = "validation.eventIdPositive")
-            @PathVariable("eventId") long eventId){
-        EventOutFullDto result =  eventService.updateEventByAdmin(inDto, eventId);
+            @PathVariable("eventId") long eventId) {
+        EventOutFullDto result = eventService.updateEventByAdmin(inDto, eventId);
         log.info("Админ обновил мероприятие с id {} : {}", eventId, result);
         return result;
-
     }
 }

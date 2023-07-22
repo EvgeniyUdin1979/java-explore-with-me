@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.events.model.Location;
 import ru.practicum.events.model.StateAction;
+import ru.practicum.events.validate.EventDateAdminUpdateConstraint;
 
 import java.time.LocalDateTime;
 
@@ -14,16 +15,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class EventUpdateAdminInDto {
 
-    @Length(min = 20, max = 2000, message = "validation.annotationLength")
+    @Length(min = 20, max = 2000, message = "{validation.annotationLength}")
     private String annotation;
 
-    @Length(min = 20, max = 7000, message = "validation.descriptionLength")
+    @Length(min = 20, max = 7000, message = "{validation.descriptionLength}")
     private String description;
 
     private Integer category;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @EventDateAdminUpdateConstraint
     private LocalDateTime eventDate;
 
     private Location location;
@@ -36,7 +38,7 @@ public class EventUpdateAdminInDto {
 
     StateAction stateAction;
 
-    @Length(min = 3, max = 120, message = "validation.titleLength")
+    @Length(min = 3, max = 120, message = "{validation.titleLength}")
     private String title;
 
 }

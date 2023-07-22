@@ -75,13 +75,16 @@ public class EventServiceImpl implements EventService {
             log.warn(message);
             throw new RequestException(message, HttpStatus.CONFLICT, "Ошибка обработки ответа на добавления мероприятия.");
         }
-        if (inDto.getStateAction() == StateAction.PUBLISH_EVENT) {
+        if (inDto.getStateAction() != null && inDto.getStateAction() == StateAction.PUBLISH_EVENT) {
             String message = "Опубликовать мероприятие может только администратор.";
             log.warn(message);
-            throw new RequestException(message, HttpStatus.BAD_REQUEST, "Ошибка обработки ответа на добавления мероприятия.");
+            throw new RequestException(message, HttpStatus.CONFLICT, "Ошибка обработки ответа на добавления мероприятия.");
         }
-        Category newestCategory = getCategoryById(inDto.getCategory());
-        Event updateEvent = EventMapping.mapToUpdateEntity(event, inDto, newestCategory);
+        Category category = null;
+        if (inDto.getCategory() != null) {
+            category = getCategoryById(inDto.getCategory());
+        }
+        Event updateEvent = EventMapping.mapToUpdateEntity(event, inDto, category);
         Event result = eventStorage.update(updateEvent);
         return viewsSupplerForFullDto(List.of(result)).stream().findFirst().orElseThrow(() -> {
             String message = "Не была получена статистика.";
@@ -106,8 +109,11 @@ public class EventServiceImpl implements EventService {
         getUserById(userId);
         Event event = getEventById(eventId);
         isOwnerEvent(userId, event);
-        Long views = getViews(event);
-        return EventMapping.mapToFullDto(event, views);
+        return viewsSupplerForFullDto(List.of(event)).stream().findFirst().orElseThrow(() -> {
+            String message = "Не была получена статистика.";
+            log.warn(message);
+            return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка получения статистики.");
+        });
     }
 
 
@@ -128,19 +134,19 @@ public class EventServiceImpl implements EventService {
         getUserById(userid);
         Event event = getEventById(eventId);
         isOwnerEvent(userid, event);
-        long remained = 0;
+        long remained = Long.MAX_VALUE;
 
         if (inDto.getStatus() == Status.CONFIRMED) {
             if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
                 String message = String.format("В мероприятие с id %d отключена пре-модерация заявок или лимит заявок равен 0. Подтверждение заявок не требуется.", eventId);
                 log.warn(message);
-                throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
             }
             long confirmed = event.getRequests().stream().filter(r -> r.getStatus() == Status.CONFIRMED).count();
             if (confirmed >= event.getParticipantLimit()) {
                 String message = String.format("В мероприятие с id %d достигнут лимит подтвержденных заявок.", eventId);
                 log.warn(message);
-                throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
             }
             remained = event.getParticipantLimit() - confirmed;
         }
@@ -154,7 +160,7 @@ public class EventServiceImpl implements EventService {
                 .filter(request -> request.getStatus() == Status.CONFIRMED)
                 .collect(Collectors.toList()));
         List<ParticipationRequestOutDto> rejectedRequests = EventMapping.mapToRequestsDto(requestSet.stream()
-                .filter(request -> request.getStatus() == Status.PENDING)
+                .filter(request -> request.getStatus() == Status.REJECTED)
                 .collect(Collectors.toList()));
         return EventRequestsStatusUpdateOutDto.builder()
                 .confirmedRequests(confirmedRequests)
@@ -171,27 +177,28 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventOutFullDto updateEventByAdmin(EventUpdateAdminInDto inDto, long eventId) {
-        if (inDto.getEventDate() != null && inDto.getEventDate().isBefore(LocalDateTime.now().plusHours(1L))) {
-            String message = String.format("Дата начала мероприятия должна быть не раньше чем час до начала. Указано в запросе: %s", inDto.getEventDate());
-            log.warn(message);
-            throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
-        }
         Event event = getEventById(eventId);
-        if (inDto.getStateAction() !=null && ((event.getState() == State.PUBLISHED || event.getState() == State.CANCELED)
-                &&   inDto.getStateAction() == StateAction.PUBLISH_EVENT)) {
-            String message = String.format("Мероприятие с id %d не имеет статуса 'Ожидает публикации'", eventId);
-            log.warn(message);
-            throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
-        }
-        if (inDto.getStateAction() !=null && (inDto.getStateAction() == StateAction.CANCEL_REVIEW
-                && (event.getState() == State.PUBLISHED || event.getState() == State.CANCELED))) {
-            String message = String.format("Мероприятие с id %d нельзя отменить. Текущий статус: %s", eventId, event.getState());
-            log.warn(message);
-            throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
-        }
+        if (inDto.getStateAction() != null) {
 
-        Category category = getCategoryById(inDto.getCategory());
+            if (inDto.getStateAction() == StateAction.PUBLISH_EVENT && event.getState() != State.PENDING) {
+                String message = String.format("Мероприятие с id %d не имеет статуса 'Ожидает публикации'", eventId);
+                log.warn(message);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            }
+
+            if ((inDto.getStateAction() == StateAction.CANCEL_REVIEW || inDto.getStateAction() == StateAction.REJECT_EVENT)
+                    && event.getState() != State.PENDING) {
+                String message = String.format("Мероприятие с id %d нельзя отменить. Текущий статус: %s", eventId, event.getState());
+                log.warn(message);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            }
+        }
+        Category category = null;
+        if (inDto.getCategory() != null) {
+            category = getCategoryById(inDto.getCategory());
+        }
         Event newestEntity = EventMapping.mapToAdminUpdateEntity(event, inDto, category);
 
         Event result = eventStorage.update(newestEntity);
@@ -228,12 +235,13 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventOutFullDto getEventByEventIdForPublic(long eventId) {
         Event event = getEventById(eventId);
         if (event.getState() != State.PUBLISHED) {
             String message = String.format("Мероприятие с id %d не опубликовано.", eventId);
             log.warn(message);
-            throw new RequestException(message, HttpStatus.BAD_REQUEST, errorRequest);
+            throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
         }
         return viewsSupplerForFullDto(List.of(event)).stream().findFirst().orElseThrow(() -> {
             String message = "Не была получена статистика.";
@@ -242,20 +250,20 @@ public class EventServiceImpl implements EventService {
         });
     }
 
-    private List<EventOutShortDto> viewsSupplerForShortDto(List<Event> result) {
-        if (!result.isEmpty()) {
-            LocalDateTime start = result.stream().min(Comparator.comparing(Event::getCreated)).get().getCreated();
-            List<String> urls = result.stream().map(e -> String.format("/event/%d", e.getId())).collect(Collectors.toList());
+    private List<EventOutShortDto> viewsSupplerForShortDto(List<Event> events) {
+        if (!events.isEmpty()) {
+            LocalDateTime start = events.stream().min(Comparator.comparing(Event::getCreated)).get().getCreated();
+            List<String> urls = events.stream().map(e -> String.format("/events/%d", e.getId())).collect(Collectors.toList());
             List<StatsOutDto> allViews = client.getStats(StatParam.builder()
                     .start(start)
                     .end(LocalDateTime.now())
-                    .uniqueIp(false)
+                    .uniqueIp(true)
                     .requestUris(urls)
                     .build());
-            return result.stream().map(e -> {
+            return events.stream().map(e -> {
                 long v = 0;
                 for (StatsOutDto view : allViews) {
-                    if (view.getUri().equals(String.format("/event/%d", e.getId()))) {
+                    if (view.getUri().equals(String.format("/events/%d", e.getId()))) {
                         v = view.getHits();
                         break;
                     }
@@ -266,23 +274,23 @@ public class EventServiceImpl implements EventService {
         return List.of();
     }
 
-    private List<EventOutFullDto> viewsSupplerForFullDto(List<Event> result) {
-        if (!result.isEmpty()) {
-            LocalDateTime start = result.stream()
+    private List<EventOutFullDto> viewsSupplerForFullDto(List<Event> events) {
+        if (!events.isEmpty()) {
+            LocalDateTime start = events.stream()
                     .min(Comparator.comparing(event -> event.getPublishedOn() == null ? event.getCreated() : event.getPublishedOn()))
                     .get()
                     .getCreated();
-            List<String> urls = result.stream().map(e -> String.format("/event/%d", e.getId())).collect(Collectors.toList());
+            List<String> urls = events.stream().map(e -> String.format("/events/%d", e.getId())).collect(Collectors.toList());
             List<StatsOutDto> allViews = client.getStats(StatParam.builder()
                     .start(start)
                     .end(LocalDateTime.now())
-                    .uniqueIp(false)
+                    .uniqueIp(true)
                     .requestUris(urls)
                     .build());
-            return result.stream().map(e -> {
+            return events.stream().map(e -> {
                 long v = 0;
                 for (StatsOutDto view : allViews) {
-                    if (view.getUri().equals(String.format("/event/%d", e.getId()))) {
+                    if (view.getUri().equals(String.format("/events/%d", e.getId()))) {
                         v = view.getHits();
                         break;
                     }
@@ -299,14 +307,21 @@ public class EventServiceImpl implements EventService {
                 String message = String.format("Статус заявки на мероприятие нельзя назначить повторно. " +
                         "Статус заявки и статус в запросе: %s | %s.", request.getStatus(), statusInDto);
                 log.warn(message);
-                throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            }
+            if ((statusInDto == Status.REJECTED || statusInDto == Status.CANCELED) && request.getStatus() == Status.CONFIRMED) {
+                String message = "Нельзя отменить уже принятую заявку на участие.";
+                log.warn(message);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
             }
             if (statusInDto == Status.CONFIRMED) {
+
+
                 if (remained > 0) {
                     request.setStatus(statusInDto);
                     remained--;
                 } else {
-                    request.setStatus(Status.CANCELED);
+                    request.setStatus(Status.REJECTED);
                 }
             } else {
                 request.setStatus(statusInDto);
