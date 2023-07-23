@@ -33,14 +33,12 @@ CREATE TABLE IF NOT EXISTS public.events
     category_id bigint NOT NULL,
     user_id bigint NOT NULL,
     CONSTRAINT events_pkey PRIMARY KEY (id),
-    CONSTRAINT user_id_fk FOREIGN KEY (user_id)
-        REFERENCES public.users (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT category_id_fk FOREIGN KEY (category_id)
-        REFERENCES public.categories (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+    CONSTRAINT events_user_id_fk FOREIGN KEY (user_id)
+        REFERENCES public.users (id)
+        ON DELETE CASCADE,
+    CONSTRAINT events_category_id_fk FOREIGN KEY (category_id)
+        REFERENCES public.categories (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS public.locations
@@ -61,13 +59,11 @@ CREATE TABLE IF NOT EXISTS public.requests
     CONSTRAINT requests_pkey PRIMARY KEY (id),
     CONSTRAINT requester_event_unique UNIQUE (event_id, requester_id),
     CONSTRAINT requester_id_fk FOREIGN KEY (requester_id)
-        REFERENCES public.users (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT event_id_fk FOREIGN KEY (event_id)
-        REFERENCES public.events (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        REFERENCES public.users (id)
+        ON DELETE CASCADE,
+    CONSTRAINT requests_event_id_fk FOREIGN KEY (event_id)
+        REFERENCES public.events (id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS public.compilations
@@ -83,14 +79,12 @@ CREATE TABLE IF NOT EXISTS public.compilations_events
     compilation_id bigint NOT NULL,
     event_id bigint NOT NULL,
     CONSTRAINT compilations_events_pkey PRIMARY KEY (compilation_id, event_id),
-    CONSTRAINT event_id_fk FOREIGN KEY (event_id)
-        REFERENCES public.events (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT compilation_id_fk FOREIGN KEY (compilation_id)
-        REFERENCES public.compilations (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+    CONSTRAINT compilations_events_event_id_fk FOREIGN KEY (event_id)
+        REFERENCES public.events (id)
+         ON DELETE CASCADE,
+    CONSTRAINT compilations_events_compilation_id_fk FOREIGN KEY (compilation_id)
+        REFERENCES public.compilations (id)
+        ON DELETE CASCADE
 );
 
 
