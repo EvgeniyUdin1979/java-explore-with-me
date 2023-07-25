@@ -7,7 +7,7 @@ import ru.practicum.compilations.model.Compilation;
 import ru.practicum.events.dto.EventOutShortDto;
 import ru.practicum.events.model.Event;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 
 @UtilityClass
@@ -15,7 +15,7 @@ public class CompilationMapping {
     public Compilation mapToEntity(CompilationInDto inDto, List<Event> events) {
         Compilation.CompilationBuilder builder = Compilation.builder();
         if (events != null) {
-            builder.events(new HashSet<>(events));
+            builder.events(new ArrayList<>(events));
         }
         if (inDto.getTitle() != null) {
             builder.title(inDto.getTitle());

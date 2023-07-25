@@ -60,7 +60,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryOutDto> findAll(int from, int size) {
         List<Category> categories = storage.findAll(from, size);
-        return categories.stream().map(CategoryMapping::mapToOut).collect(Collectors.toList());
+        return categories.stream()
+                .map(CategoryMapping::mapToOut)
+                .collect(Collectors.toList());
     }
 
     @Override

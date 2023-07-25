@@ -5,22 +5,20 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.client.BaseClient;
 import ru.practicum.compilations.dto.CompilationInDto;
 import ru.practicum.compilations.dto.CompilationOutDto;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.compilations.storage.CompilationStorageDao;
 import ru.practicum.compilations.util.CompilationMapping;
-import ru.practicum.dto.StatParam;
-import ru.practicum.dto.StatsOutDto;
 import ru.practicum.events.dto.EventOutShortDto;
 import ru.practicum.events.model.Event;
+import ru.practicum.events.service.ViewsSuppler;
 import ru.practicum.events.storage.EventStorageDao;
-import ru.practicum.events.util.EventMapping;
 import ru.practicum.exceptions.RequestException;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,13 +30,12 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationStorageDao compilationStorage;
 
     private final EventStorageDao eventStorage;
+    private final ViewsSuppler suppler;
 
-    private final BaseClient client;
-
-    public CompilationServiceImpl(CompilationStorageDao compilationStorage, EventStorageDao eventStorage, BaseClient client) {
+    public CompilationServiceImpl(CompilationStorageDao compilationStorage, EventStorageDao eventStorage, ViewsSuppler suppler) {
         this.compilationStorage = compilationStorage;
         this.eventStorage = eventStorage;
-        this.client = client;
+        this.suppler = suppler;
     }
 
 
@@ -51,7 +48,7 @@ public class CompilationServiceImpl implements CompilationService {
         }
         Compilation compilation = CompilationMapping.mapToEntity(inDto, events);
         Compilation result = compilationStorage.add(compilation);
-        List<EventOutShortDto> eventsOutDto = viewsSupplerForShortDto(result.getEvents());
+        List<EventOutShortDto> eventsOutDto = suppler.viewsSupplerForShortDto(result.getEvents());
         return CompilationMapping.mapToOutDto(result, eventsOutDto);
     }
 
@@ -60,7 +57,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationOutDto updateByIdForAdmin(CompilationInDto inDto, long compId) {
         Compilation old = getCompilationById(compId);
         if (inDto.getEvents() != null) {
-            old.setEvents(new HashSet<>(eventStorage.findAllByIds(inDto.getEvents())));
+            old.setEvents(new ArrayList<>(eventStorage.findAllByIds(inDto.getEvents())));
         }
         if (inDto.getPinned() != null) {
             old.setPinned(inDto.getPinned());
@@ -69,7 +66,7 @@ public class CompilationServiceImpl implements CompilationService {
             old.setTitle(inDto.getTitle());
         }
         Compilation result = compilationStorage.update(old);
-        List<EventOutShortDto> eventsOutDto = viewsSupplerForShortDto(result.getEvents());
+        List<EventOutShortDto> eventsOutDto = suppler.viewsSupplerForShortDto(result.getEvents());
         return CompilationMapping.mapToOutDto(result, eventsOutDto);
     }
 
@@ -90,7 +87,7 @@ public class CompilationServiceImpl implements CompilationService {
     public List<CompilationOutDto> getAllForPublic(Optional<Boolean> pinned, int from, int size) {
         List<Compilation> compilations = compilationStorage.findAll(pinned, from, size);
         return compilations.stream().map(c ->
-                CompilationMapping.mapToOutDto(c, viewsSupplerForShortDto(c.getEvents()))
+                CompilationMapping.mapToOutDto(c, suppler.viewsSupplerForShortDto(c.getEvents()))
         ).collect(Collectors.toList());
     }
 
@@ -98,7 +95,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public CompilationOutDto findById(long compId) {
         Compilation compilation = getCompilationById(compId);
-        List<EventOutShortDto> events = viewsSupplerForShortDto(compilation.getEvents());
+        List<EventOutShortDto> events = suppler.viewsSupplerForShortDto(compilation.getEvents());
         return CompilationMapping.mapToOutDto(compilation, events);
     }
 
@@ -109,29 +106,5 @@ public class CompilationServiceImpl implements CompilationService {
                     return new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
                 }
         );
-    }
-
-    private List<EventOutShortDto> viewsSupplerForShortDto(Set<Event> events) {
-        if (events != null && !events.isEmpty()) {
-            LocalDateTime start = events.stream().min(Comparator.comparing(Event::getCreated)).get().getCreated();
-            List<String> urls = events.stream().map(e -> String.format("/events/%d", e.getId())).collect(Collectors.toList());
-            List<StatsOutDto> allViews = client.getStats(StatParam.builder()
-                    .start(start)
-                    .end(LocalDateTime.now())
-                    .uniqueIp(true)
-                    .requestUris(urls)
-                    .build());
-            return events.stream().map(e -> {
-                long v = 0;
-                for (StatsOutDto view : allViews) {
-                    if (view.getUri().equals(String.format("/events/%d", e.getId()))) {
-                        v = view.getHits();
-                        break;
-                    }
-                }
-                return EventMapping.mapToShortDto(e, v);
-            }).collect(Collectors.toList());
-        }
-        return List.of();
     }
 }

@@ -84,7 +84,13 @@ public class EventMapping {
             event.setParticipantLimit(updateInDto.getParticipantLimit());
         }
         if (updateInDto.getStateAction() != null) {
-            event.setState(getState(updateInDto.getStateAction()));
+            StateAction action = updateInDto.getStateAction();
+            event.setState(
+                    State.valueOfStateAction(action).orElseThrow(() -> {
+                        String message = String.format("Параметр запроса состояние : %s не корректно.", action);
+                        log.warn(message);
+                        return new RequestException(message, HttpStatus.BAD_REQUEST, "Запрос содержит не корректные данные");
+                    }));
         }
         if (updateInDto.getTitle() != null) {
             event.setTitle(updateInDto.getTitle());
@@ -115,7 +121,13 @@ public class EventMapping {
             event.setParticipantLimit(updateInDto.getParticipantLimit());
         }
         if (updateInDto.getStateAction() != null) {
-            event.setState(getState(updateInDto.getStateAction()));
+            StateAction action = updateInDto.getStateAction();
+            event.setState(
+                    State.valueOfStateAction(action).orElseThrow(() -> {
+                        String message = String.format("Параметр запроса состояние : %s не корректно.", action);
+                        log.warn(message);
+                        return new RequestException(message, HttpStatus.BAD_REQUEST, "Запрос содержит не корректные данные");
+                    }));
             if (updateInDto.getStateAction() == StateAction.PUBLISH_EVENT) {
                 event.setPublishedOn(LocalDateTime.now());
             }
@@ -142,24 +154,6 @@ public class EventMapping {
                 .views(views)
                 .build();
     }
-
-    private State getState(StateAction action) {
-        switch (action) {
-            case SEND_TO_REVIEW:
-                return State.PENDING;
-            case CANCEL_REVIEW:
-                return State.CANCELED;
-            case REJECT_EVENT:
-                return State.REJECT;
-            case PUBLISH_EVENT:
-                return State.PUBLISHED;
-            default:
-                String message = String.format("Параметр запроса состояние : %s не корректно.", action);
-                log.warn(message);
-                throw new RequestException(message, HttpStatus.BAD_REQUEST, "Запрос содержит не корректные данные");
-        }
-    }
-
 
     public static List<ParticipationRequestOutDto> mapToRequestsDto(List<Request> requests) {
         return requests.stream()

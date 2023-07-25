@@ -7,9 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.categories.model.Category;
 import ru.practicum.categories.storage.CategoryStorageDao;
-import ru.practicum.client.BaseClient;
-import ru.practicum.dto.StatParam;
-import ru.practicum.dto.StatsOutDto;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.model.*;
 import ru.practicum.events.storage.EventStorageDao;
@@ -37,7 +34,8 @@ public class EventServiceImpl implements EventService {
     private final UserStorageDao userStorage;
     private final CategoryStorageDao categoryStorage;
     private final RequestStorageDao requestStorage;
-    private final BaseClient client;
+
+    private final ViewsSuppler suppler;
 
 
     private final String errorRequest = "Запрос содержит не корректные данные";
@@ -46,12 +44,12 @@ public class EventServiceImpl implements EventService {
     public EventServiceImpl(EventStorageDao eventStorage,
                             UserStorageDao userStorage,
                             CategoryStorageDao categoryStorage,
-                            RequestStorageDao requestStorage, BaseClient client) {
+                            RequestStorageDao requestStorage, ViewsSuppler suppler) {
         this.eventStorage = eventStorage;
         this.userStorage = userStorage;
         this.categoryStorage = categoryStorage;
         this.requestStorage = requestStorage;
-        this.client = client;
+        this.suppler = suppler;
     }
 
     @Override
@@ -86,7 +84,7 @@ public class EventServiceImpl implements EventService {
         }
         Event updateEvent = EventMapping.mapToUpdateEntity(event, inDto, category);
         Event result = eventStorage.update(updateEvent);
-        return viewsSupplerForFullDto(List.of(result)).stream().findFirst().orElseThrow(() -> {
+        return suppler.viewsSupplerForFullDto(List.of(result)).stream().findFirst().orElseThrow(() -> {
             String message = "Не была получена статистика.";
             log.warn(message);
             return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка получения статистики.");
@@ -99,7 +97,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public List<EventOutShortDto> getAllByUserId(long userid, int from, int size) {
         List<Event> result = eventStorage.findAllByUserId(userid, from, size);
-        return viewsSupplerForShortDto(result);
+        return suppler.viewsSupplerForShortDto(result);
     }
 
 
@@ -109,7 +107,7 @@ public class EventServiceImpl implements EventService {
         getUserById(userId);
         Event event = getEventById(eventId);
         isOwnerEvent(userId, event);
-        return viewsSupplerForFullDto(List.of(event)).stream().findFirst().orElseThrow(() -> {
+        return suppler.viewsSupplerForFullDto(List.of(event)).stream().findFirst().orElseThrow(() -> {
             String message = "Не была получена статистика.";
             log.warn(message);
             return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка получения статистики.");
@@ -173,7 +171,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public List<EventOutFullDto> getAllForAdmin(EventAdminSearchParams params) {
         List<Event> result = eventStorage.findAllForAdmin(params);
-        return viewsSupplerForFullDto(result);
+        return suppler.viewsSupplerForFullDto(result);
     }
 
     @Override
@@ -202,7 +200,7 @@ public class EventServiceImpl implements EventService {
         Event newestEntity = EventMapping.mapToAdminUpdateEntity(event, inDto, category);
 
         Event result = eventStorage.update(newestEntity);
-        return viewsSupplerForFullDto(List.of(result)).stream().findFirst().orElseThrow(() -> {
+        return suppler.viewsSupplerForFullDto(List.of(result)).stream().findFirst().orElseThrow(() -> {
             String message = "Не была получена статистика.";
             log.warn(message);
             return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка получения статистики.");
@@ -219,7 +217,7 @@ public class EventServiceImpl implements EventService {
                 return e.getParticipantLimit() > count;
             }).collect(Collectors.toList());
         }
-        List<EventOutShortDto> result = viewsSupplerForShortDto(events);
+        List<EventOutShortDto> result = suppler.viewsSupplerForShortDto(events);
         if (params.getSort() != null) {
             switch (params.getSort()) {
                 case VIEWS:
@@ -243,62 +241,11 @@ public class EventServiceImpl implements EventService {
             log.warn(message);
             throw new RequestException(message, HttpStatus.NOT_FOUND, errorRequest);
         }
-        return viewsSupplerForFullDto(List.of(event)).stream().findFirst().orElseThrow(() -> {
+        return suppler.viewsSupplerForFullDto(List.of(event)).stream().findFirst().orElseThrow(() -> {
             String message = "Не была получена статистика.";
             log.warn(message);
             return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка получения статистики.");
         });
-    }
-
-    private List<EventOutShortDto> viewsSupplerForShortDto(List<Event> events) {
-        if (!events.isEmpty()) {
-            LocalDateTime start = events.stream().min(Comparator.comparing(Event::getCreated)).get().getCreated();
-            List<String> urls = events.stream().map(e -> String.format("/events/%d", e.getId())).collect(Collectors.toList());
-            List<StatsOutDto> allViews = client.getStats(StatParam.builder()
-                    .start(start)
-                    .end(LocalDateTime.now())
-                    .uniqueIp(true)
-                    .requestUris(urls)
-                    .build());
-            return events.stream().map(e -> {
-                long v = 0;
-                for (StatsOutDto view : allViews) {
-                    if (view.getUri().equals(String.format("/events/%d", e.getId()))) {
-                        v = view.getHits();
-                        break;
-                    }
-                }
-                return EventMapping.mapToShortDto(e, v);
-            }).collect(Collectors.toList());
-        }
-        return List.of();
-    }
-
-    private List<EventOutFullDto> viewsSupplerForFullDto(List<Event> events) {
-        if (!events.isEmpty()) {
-            LocalDateTime start = events.stream()
-                    .min(Comparator.comparing(event -> event.getPublishedOn() == null ? event.getCreated() : event.getPublishedOn()))
-                    .get()
-                    .getCreated();
-            List<String> urls = events.stream().map(e -> String.format("/events/%d", e.getId())).collect(Collectors.toList());
-            List<StatsOutDto> allViews = client.getStats(StatParam.builder()
-                    .start(start)
-                    .end(LocalDateTime.now())
-                    .uniqueIp(true)
-                    .requestUris(urls)
-                    .build());
-            return events.stream().map(e -> {
-                long v = 0;
-                for (StatsOutDto view : allViews) {
-                    if (view.getUri().equals(String.format("/events/%d", e.getId()))) {
-                        v = view.getHits();
-                        break;
-                    }
-                }
-                return EventMapping.mapToFullDto(e, v);
-            }).collect(Collectors.toList());
-        }
-        return List.of();
     }
 
     private void changeRequestStatus(List<Request> requests, long remained, Status statusInDto) {
@@ -365,20 +312,4 @@ public class EventServiceImpl implements EventService {
                 }
         );
     }
-
-    private Long getViews(Event event) {
-        StatParam param = StatParam.builder()
-                .start(event.getCreated())
-                .end(LocalDateTime.now())
-                .uniqueIp(false)
-                .requestUris(List.of("/events/" + event.getId()))
-                .build();
-        return client.getStats(param).stream().findFirst().orElseThrow(() -> {
-            String message = String.format("Не была получена статистика по urls : %s.", param.getRequestUris());
-            log.warn(message);
-            return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка получения статистики.");
-        }).getHits();
-    }
-
-
 }

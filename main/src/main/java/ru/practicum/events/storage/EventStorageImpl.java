@@ -44,7 +44,7 @@ public class EventStorageImpl implements EventStorageDao {
 
     @Override
     public List<Event> findAllByUserId(long userId, int from, int size) {
-        return eventRepository.findAllByInitiatorId(userId, PageRequest.of(from, size)).toList();
+        return eventRepository.findAllByInitiatorId(userId, PageRequest.of(from, size));
     }
 
 

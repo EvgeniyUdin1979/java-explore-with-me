@@ -22,15 +22,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CustomAdvice {
 
-    String reasonBadRequest = "Некорректные параметры запроса.";
+    private final String reasonBadRequest = "Некорректные параметры запроса.";
 
     @ExceptionHandler(RequestException.class)
-    ResponseEntity<ApiError> handler(RequestException e) {
+    public ResponseEntity<ApiError> handler(RequestException e) {
         return getResponse(e.getCode(), e.getReason(), e.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    ResponseEntity<ApiError> handler(DataIntegrityViolationException e) {
+   public ResponseEntity<ApiError> handler(DataIntegrityViolationException e) {
         String message = e.getCause().getCause().getMessage();
         return getResponse(HttpStatus.CONFLICT,
                 "Ограничение целостности было нарушено.",
@@ -38,7 +38,7 @@ public class CustomAdvice {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ApiError> handleException(MethodArgumentNotValidException ex) {
+   public ResponseEntity<ApiError> handleException(MethodArgumentNotValidException ex) {
         List<String> errorMessages = ex.getAllErrors().stream()
                 .map(e -> e.getDefaultMessage())
                 .sorted()
@@ -53,7 +53,7 @@ public class CustomAdvice {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    ResponseEntity<ApiError> handleException(ConstraintViolationException ex) {
+   public ResponseEntity<ApiError> handleException(ConstraintViolationException ex) {
         List<String> errorMessages = ex.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .sorted()

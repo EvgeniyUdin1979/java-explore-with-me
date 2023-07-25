@@ -31,7 +31,7 @@ public class UserStorageImpl implements UserStorageDao {
 
     @Override
     public List<User> findAllByIdIn(List<Long> ids, int from, int size) {
-        return repository.findAllByIdIn(ids, PageRequest.of(from, size)).toList();
+        return repository.findAllByIdIn(ids, PageRequest.of(from, size));
     }
 
     @Override
