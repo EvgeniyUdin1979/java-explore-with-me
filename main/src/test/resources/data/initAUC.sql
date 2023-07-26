@@ -1,0 +1,1 @@
+insert into users (email, name) values ('user1@yandex.ru', 'Вася Пупкин');

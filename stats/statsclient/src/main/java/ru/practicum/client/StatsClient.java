@@ -2,6 +2,8 @@ package ru.practicum.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -16,13 +18,18 @@ import java.util.Map;
 
 @Service
 public class StatsClient implements BaseClient {
-    private final String serverUrl = "http://localhost:9090";
+    private final String serverUrl;
 
     private final String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final RestTemplate restTemplate = new RestTemplate();
+
+    @Autowired
+    public StatsClient(@Value("${stats.server.url}") String serverUrl) {
+        this.serverUrl = serverUrl;
+    }
 
     @Override
     public HttpStatus sendStats(SendParams params) {
