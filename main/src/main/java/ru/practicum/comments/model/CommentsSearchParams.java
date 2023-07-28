@@ -8,13 +8,13 @@ import java.util.Optional;
 
 @Data
 @Builder
-public class CommentsPrivateSearchParams {
+public class CommentsSearchParams {
 
     private LocalDateTime rangeStart;
 
     private LocalDateTime rangeEnd;
 
-    private long userId;
+    private Optional<Long> userId;
 
     private Optional<CommentStatus> status;
 

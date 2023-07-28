@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.compilations.dto.CompilationInDto;
 import ru.practicum.compilations.dto.CompilationOutDto;
 import ru.practicum.compilations.service.CompilationService;
-import ru.practicum.compilations.valid.Create;
-import ru.practicum.compilations.valid.Update;
+import ru.practicum.valid.Create;
+import ru.practicum.valid.Update;
 
 @Slf4j
 @RestController

@@ -19,10 +19,12 @@ public class CommentOutDto {
 
     private long event_id;
 
-    private Long parent_id;
+    private CommentOutShortDto parent;
 
     private CommentStatus status;
 
     private LocalDateTime created;
+
+    private LocalDateTime publishedOn;
 
 }

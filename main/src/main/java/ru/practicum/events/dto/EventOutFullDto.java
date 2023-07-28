@@ -3,9 +3,12 @@ package ru.practicum.events.dto;
 import lombok.Builder;
 import lombok.Data;
 import ru.practicum.categories.dto.CategoryOutDto;
+import ru.practicum.comments.dto.CommentOutDto;
 import ru.practicum.events.model.Location;
 import ru.practicum.events.model.State;
 import ru.practicum.users.dto.UserOutShortDto;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -42,4 +45,6 @@ public class EventOutFullDto {
     private String title;
 
     private long views;
+
+    private List<CommentOutDto> comments;
 }

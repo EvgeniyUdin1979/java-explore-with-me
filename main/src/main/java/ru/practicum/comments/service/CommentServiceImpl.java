@@ -4,12 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.comments.dto.CommentInDto;
 import ru.practicum.comments.dto.CommentOutDto;
-import ru.practicum.comments.dto.CommentUpdateInDto;
 import ru.practicum.comments.model.Comment;
 import ru.practicum.comments.model.CommentStatus;
-import ru.practicum.comments.model.CommentsPrivateSearchParams;
+import ru.practicum.comments.model.CommentsSearchParams;
 import ru.practicum.comments.storage.CommentStorageDao;
 import ru.practicum.comments.util.CommentMapper;
 import ru.practicum.events.model.Event;
@@ -45,20 +45,38 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentOutDto addComment(CommentInDto inDto, long eventId, Optional<Long> parentId, long userId) {
         User user = getUserById(userId);
-        Event event = getEventById(eventId);
         Comment parent = null;
         if (parentId.isPresent()) {
-            parent = getCommentById(parentId.get());
+            long parentLong = parentId.get();
+            if (parentLong < 1) {
+                String message = String.format("id родительского комментария должен быть положительный. Передан: %d", parentLong);
+                log.warn(message);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            }
+            getCommentById(parentLong);
+            parent = getCommentById(parentLong);
         }
+        Event event = getEventById(eventId);
         Comment comment = CommentMapper.mapToEntity(inDto, event, user, parent);
         Comment result = commentStorage.add(comment);
         return CommentMapper.mapToOut(result);
     }
 
     @Override
-    public CommentOutDto updateComment(CommentUpdateInDto inDto, long userId, long commentId) {
+    @Transactional
+    public CommentOutDto updateComment(String text, long userId, long commentId, String status) {
+        CommentStatus newestStatus = null;
+        if (status != null) {
+            newestStatus = CommentStatus.from(status).orElseThrow(() -> {
+                String message = String.format("Новый статус для комментария с id %d указан не верно %s.", commentId, status);
+                log.warn(message);
+                return new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            });
+        }
+
         getUserById(userId);
         Comment comment = getCommentById(commentId);
         if (comment.getCreator().getId() != userId) {
@@ -66,29 +84,30 @@ public class CommentServiceImpl implements CommentService {
             log.warn(message);
             throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
         }
-        if (inDto.getStatus() != null) {
-            if (comment.getStatus() == CommentStatus.DELETED || comment.getStatus() == CommentStatus.REJECT) {
-                String message = "Пользователь может поменять статус только у удаленного или отклоненного комментария.";
+        if (status != null) {
+            if (comment.getStatus() == newestStatus) {
+                String message = "Комментарий уже находится в текущем статусе.";
                 log.warn(message);
                 throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
             }
-            if (inDto.getStatus() != CommentStatus.PENDING) {
-                String message = String.format("Пользователь может поменять статус только на 'Ожидает публикации(PENDING)' статус в запросе %s.", inDto.getStatus());
+            if (newestStatus != CommentStatus.PENDING) {
+                String message = String.format("Пользователь может поменять статус только на 'Ожидает публикации (PENDING)', статус в запросе %s.", newestStatus);
                 log.warn(message);
                 throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
             }
         }
-        if (inDto.getText() != null && !inDto.getText().isBlank()) {
+        if (text != null && text.isBlank()) {
             String message = "Текст комментария не может быть пустым или содержать пробелы.";
             log.warn(message);
             throw new RequestException(message, HttpStatus.BAD_REQUEST, errorRequest);
         }
-        Comment updateComment = CommentMapper.mapUpdateToEntity(inDto, comment);
+        Comment updateComment = CommentMapper.mapUpdateToEntity(text, newestStatus, comment);
         Comment result = commentStorage.update(updateComment);
         return CommentMapper.mapToOut(result);
     }
 
     @Override
+    @Transactional
     public CommentOutDto deleteComment(long userId, long commentId) {
         getUserById(userId);
         Comment comment = getCommentById(commentId);
@@ -108,6 +127,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentOutDto getCommentByIdForPrivate(long userId, long commentId) {
         getUserById(userId);
         Comment comment = getCommentById(commentId);
@@ -120,43 +140,53 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<CommentOutDto> getAllCommentForPrivate(CommentsPrivateSearchParams params) {
-        getUserById(params.getUserId());
-        List<Comment> result = commentStorage.getAllCommentForPrivate(params);
+    @Transactional
+    public List<CommentOutDto> getAllComment(CommentsSearchParams params) {
+        getUserById(params.getUserId().orElseThrow(() -> {
+            String message = "Проблема с получением id для приватного запроса на получение комментариев.";
+            log.warn(message);
+            return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, errorRequest);
+        }));
+        List<Comment> result = commentStorage.getAllComment(params);
         return result.stream()
                 .map(CommentMapper::mapToOut)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public CommentOutDto updateCommentByIdForAdmin(long commentId, String status) {
-        Comment comment = getCommentById(commentId);
+    @Transactional
+    public List<CommentOutDto> updateCommentByIdForAdmin(List<Long> commentIds, String status) {
         CommentStatus newestStatus = CommentStatus.from(status).orElseThrow(() -> {
-            String message = String.format("Новый статус для комментария с id %d указан не верно %s.", commentId, status);
+            String message = String.format("Новый статус для комментариев  указан не верно %s.", status);
             log.warn(message);
             return new RequestException(message, HttpStatus.CONFLICT, errorRequest);
         });
-        if (comment.getStatus() == newestStatus) {
-            String message = String.format("Новый статус для комментария с id %d совпадает с текущим %s | статус комментария %s.", commentId, status, comment.getStatus());
-            log.warn(message);
-            throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
-        }
-        if (newestStatus !=  CommentStatus.PUBLISHED || newestStatus != CommentStatus.REJECT) {
-            String message = String.format("Администратор может только опубликовать(PUBLISHED) или отклонить(REJECT) комментарий. Пришел статус %s.", newestStatus);
-            log.warn(message);
-            throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
-        }
-        if (comment.getStatus() != CommentStatus.PENDING) {
+        List<Comment> comments = commentStorage.getAllCommentsById(commentIds);
+        comments.forEach(comment -> {
+            if (comment.getStatus() == newestStatus) {
+                String message = String.format("Новый статус для комментария с id %d совпадает с текущим %s | статус комментария %s.", comment.getId(), status, comment.getStatus());
+                log.warn(message);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            }
+            if (newestStatus != CommentStatus.PUBLISHED && newestStatus != CommentStatus.REJECT) {
+                String message = String.format("Администратор может только опубликовать(PUBLISHED) или отклонить(REJECT) комментарий. Пришел статус %s.", newestStatus);
+                log.warn(message);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            }
+            if (comment.getStatus() != CommentStatus.PENDING) {
                 String message = String.format("Опубликовать или отклонить можно только комментарии ожидающие публикации. Статус комментария %s.", comment.getStatus());
                 log.warn(message);
                 throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
-        }
-        comment.setStatus(CommentStatus.PUBLISHED);
-        if (comment.getPublishedOn() != null) {
-            comment.setPublishedOn(LocalDateTime.now());
-        }
-        Comment result = commentStorage.update(comment);
-        return CommentMapper.mapToOut(result);
+            }
+            comment.setStatus(CommentStatus.PUBLISHED);
+            if (comment.getPublishedOn() == null) {
+                comment.setPublishedOn(LocalDateTime.now());
+            }
+        });
+        List<Comment> result = commentStorage.updateAll(comments);
+        return result.stream()
+                .map(CommentMapper::mapToOut)
+                .collect(Collectors.toList());
     }
 
     private User getUserById(long userId) {

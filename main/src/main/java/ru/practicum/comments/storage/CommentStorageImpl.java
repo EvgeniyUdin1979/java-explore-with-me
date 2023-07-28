@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.practicum.comments.model.Comment;
-import ru.practicum.comments.model.CommentsPrivateSearchParams;
+import ru.practicum.comments.model.CommentsSearchParams;
 import ru.practicum.comments.model.QComment;
 
 import javax.persistence.EntityManager;
@@ -42,11 +42,13 @@ public class CommentStorageImpl implements CommentStorageDao {
     }
 
     @Override
-    public List<Comment> getAllCommentForPrivate(CommentsPrivateSearchParams params) {
+    public List<Comment> getAllComment(CommentsSearchParams params) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(em);
         QComment comment = QComment.comment;
         JPAQuery<Comment> eventJPAQuery = queryFactory.selectFrom(comment);
-        eventJPAQuery.where(comment.creator.id.eq(params.getUserId()));
+        if (params.getUserId().isPresent()){
+            eventJPAQuery.where(comment.creator.id.eq(params.getUserId().get()));
+        }
         if (params.getStatus().isPresent()) {
             eventJPAQuery.where(comment.status.eq(params.getStatus().get()));
         }
@@ -62,4 +64,14 @@ public class CommentStorageImpl implements CommentStorageDao {
                 .fetch();
     }
 
+    @Override
+    public List<Comment> getAllCommentsById(List<Long> commentIds) {
+
+        return repository.getAllCommentsByIdIn(commentIds);
+    }
+
+    @Override
+    public List<Comment> updateAll(List<Comment> comments) {
+        return repository.saveAll(comments);
+    }
 }

@@ -1,7 +1,7 @@
 package ru.practicum.comments.storage;
 
 import ru.practicum.comments.model.Comment;
-import ru.practicum.comments.model.CommentsPrivateSearchParams;
+import ru.practicum.comments.model.CommentsSearchParams;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,5 +13,9 @@ public interface CommentStorageDao {
 
     Comment update(Comment comment);
 
-    List<Comment> getAllCommentForPrivate(CommentsPrivateSearchParams params);
+    List<Comment> getAllComment(CommentsSearchParams params);
+
+    List<Comment> getAllCommentsById(List<Long> commentIds);
+
+    List<Comment> updateAll(List<Comment> comments);
 }

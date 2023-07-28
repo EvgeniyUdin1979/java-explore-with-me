@@ -30,12 +30,12 @@ public class Comment {
     private Event event;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "creator_id", nullable = false)
     @ToString.Exclude
     private User creator;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id", nullable = false)
+    @JoinColumn(name = "parent_id")
     @ToString.Exclude
     private Comment parentComment;
 
@@ -48,8 +48,6 @@ public class Comment {
     @Column(nullable = false)
     private LocalDateTime created;
 
+    @Column(name = "published_on")
     private LocalDateTime publishedOn;
-
-
-
 }
