@@ -79,7 +79,7 @@ public class CustomAdvice {
     public ResponseEntity<ApiError> typeMismatchException(HttpMessageNotReadableException ex) {
         String message = String.format("Не верные данные в теле запроса. %s", ex.getMessage());
         log.warn("Параметр {} не является числом.", ex.getMessage());
-        return getResponse(HttpStatus.BAD_REQUEST, reasonBadRequest, message);
+        return getResponse(HttpStatus.CONFLICT, reasonBadRequest, message);
     }
 
     private ResponseEntity<ApiError> getResponse(@NonNull HttpStatus status, String reason, String message) {
