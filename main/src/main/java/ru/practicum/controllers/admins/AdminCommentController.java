@@ -49,8 +49,8 @@ public class AdminCommentController {
                                              @RequestParam(value = "rangeEnd", required = false)
                                              LocalDateTime rangeEnd,
                                              @RequestParam(value = "status") Optional<String> status,
-                                             @Positive(message = "{validation.userIdPositive}")
-                                             @RequestParam(value = "userId") Optional<Long> userId,
+                                             @RequestParam(value = "userIds", required = false) List<Long> userIds,
+                                             @RequestParam(value = "commentIds", required = false) List<Long> commentIds,
                                              @PositiveOrZero(message = "{validation.fromPositiveOrZero}")
                                              @RequestParam(value = "from", defaultValue = "0") int from,
                                              @Positive(message = "{validation.sizePositive}")
@@ -59,7 +59,8 @@ public class AdminCommentController {
                 .rangeStart(rangeStart)
                 .rangeEnd(rangeEnd)
                 .status(CommentStatus.from(status.orElse(null)))
-                .userId(userId)
+                .userIds(userIds)
+                .commentIds(commentIds)
                 .from(from)
                 .size(size)
                 .build();

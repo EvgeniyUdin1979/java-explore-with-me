@@ -46,8 +46,11 @@ public class CommentStorageImpl implements CommentStorageDao {
         JPAQueryFactory queryFactory = new JPAQueryFactory(em);
         QComment comment = QComment.comment;
         JPAQuery<Comment> eventJPAQuery = queryFactory.selectFrom(comment);
-        if (params.getUserId().isPresent()){
-            eventJPAQuery.where(comment.creator.id.eq(params.getUserId().get()));
+        if (params.getUserIds() != null) {
+            eventJPAQuery.where(comment.creator.id.in(params.getUserIds()));
+        }
+        if (params.getCommentIds() != null) {
+            eventJPAQuery.where(comment.id.in(params.getCommentIds()));
         }
         if (params.getStatus().isPresent()) {
             eventJPAQuery.where(comment.status.eq(params.getStatus().get()));

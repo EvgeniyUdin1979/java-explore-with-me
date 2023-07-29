@@ -142,11 +142,6 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public List<CommentOutDto> getAllComment(CommentsSearchParams params) {
-        getUserById(params.getUserId().orElseThrow(() -> {
-            String message = "Проблема с получением id для приватного запроса на получение комментариев.";
-            log.warn(message);
-            return new RequestException(message, HttpStatus.INTERNAL_SERVER_ERROR, errorRequest);
-        }));
         List<Comment> result = commentStorage.getAllComment(params);
         return result.stream()
                 .map(CommentMapper::mapToOut)

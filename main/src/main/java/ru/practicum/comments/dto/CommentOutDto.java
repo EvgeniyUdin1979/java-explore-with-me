@@ -10,21 +10,13 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class CommentOutDto {
-    
     private long id;
-    
     private String text;
-    
     private UserOutShortDto creator;
-
-    private long event_id;
-
+    private long eventId;
     private CommentOutShortDto parent;
-
     private CommentStatus status;
-
     private LocalDateTime created;
-
     private LocalDateTime publishedOn;
 
 }

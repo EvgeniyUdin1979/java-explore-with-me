@@ -29,16 +29,16 @@ public class CommentMapper {
 
     public CommentOutDto mapToOut(Comment comment) {
         CommentOutDto.CommentOutDtoBuilder builder = CommentOutDto.builder();
-        if (comment.getParentComment() != null){
+        if (comment.getParentComment() != null) {
                 builder.parent(CommentMapper.mapToShortOut(comment.getParentComment()));
         }
-        if (comment.getPublishedOn() != null){
+        if (comment.getPublishedOn() != null) {
             builder.publishedOn(comment.getPublishedOn());
         }
         return builder
                 .id(comment.getId())
                 .text(comment.getText())
-                .event_id(comment.getEvent().getId())
+                .eventId(comment.getEvent().getId())
                 .creator(UserMapper.mapToOutShort(comment.getCreator()))
                 .created(comment.getCreated())
                 .status(comment.getStatus())

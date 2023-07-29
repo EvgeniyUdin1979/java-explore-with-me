@@ -32,7 +32,7 @@ class PrivateCommentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"text\": \"Hello World\"}")
                 .queryParam("eventId", "1")
-                ).andDo(print()).andExpect(status().isCreated());
+        ).andDo(print()).andExpect(status().isCreated());
     }
 
     @Test
@@ -46,7 +46,7 @@ class PrivateCommentControllerTest {
         mvc.perform(patch(baseUrl + "/1/comments/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .queryParam("eventId", "1")
-                        .queryParam("text", "123")
+                .queryParam("text", "123")
         ).andDo(print()).andExpect(status().isOk());
     }
 
@@ -66,9 +66,5 @@ class PrivateCommentControllerTest {
     @Test
     void getCommentById() throws Exception {
         mvc.perform(get(baseUrl + "/1/comments/1")).andDo(print()).andExpect(status().isNotFound());
-    }
-
-    @Test
-    void getAllComment() {
     }
 }

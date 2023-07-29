@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Data
@@ -14,9 +15,11 @@ public class CommentsSearchParams {
 
     private LocalDateTime rangeEnd;
 
-    private Optional<Long> userId;
+    private List<Long> userIds;
 
     private Optional<CommentStatus> status;
+
+    private List<Long> commentIds;
 
     private int from;
 

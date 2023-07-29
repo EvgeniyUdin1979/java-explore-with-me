@@ -89,7 +89,7 @@ public class PrivateCommentController {
                                        @Future(message = "{validation.rangeEndFuture}")
                                        @RequestParam(value = "rangeEnd", required = false)
                                        LocalDateTime rangeEnd,
-                                             @RequestParam(value = "status", required = false) Optional<String> status,
+                                       @RequestParam(value = "status", required = false) Optional<String> status,
                                        @Positive(message = "{validation.userIdPositive}")
                                        @PathVariable(value = "userId") long userId,
                                        @PositiveOrZero(message = "{validation.fromPositiveOrZero}")
@@ -100,7 +100,7 @@ public class PrivateCommentController {
                 .rangeStart(rangeStart)
                 .rangeEnd(rangeEnd)
                 .status(CommentStatus.from(status.orElse(null)))
-                .userId(Optional.of(userId))
+                .userIds(List.of(userId))
                 .from(from)
                 .size(size)
                 .build();
