@@ -13,6 +13,7 @@ import ru.practicum.comments.model.CommentsSearchParams;
 import ru.practicum.comments.storage.CommentStorageDao;
 import ru.practicum.comments.util.CommentMapper;
 import ru.practicum.events.model.Event;
+import ru.practicum.events.model.State;
 import ru.practicum.events.storage.EventStorageDao;
 import ru.practicum.exceptions.RequestException;
 import ru.practicum.users.model.User;
@@ -58,8 +59,18 @@ public class CommentServiceImpl implements CommentService {
             }
             getCommentById(parentLong);
             parent = getCommentById(parentLong);
+            if (parent.getStatus() != CommentStatus.PUBLISHED) {
+                String message = "Нельзя добавлять комментария если родительский комментарий не опубликован.";
+                log.warn(message);
+                throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+            }
         }
         Event event = getEventById(eventId);
+        if (event.getState() != State.PUBLISHED) {
+            String message = "Нельзя добавлять комментария если событие не опубликовано.";
+            log.warn(message);
+            throw new RequestException(message, HttpStatus.CONFLICT, errorRequest);
+        }
         Comment comment = CommentMapper.mapToEntity(inDto, event, user, parent);
         Comment result = commentStorage.add(comment);
         return CommentMapper.mapToOut(result);

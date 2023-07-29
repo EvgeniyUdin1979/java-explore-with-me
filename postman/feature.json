@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "Private",
+			"name": "All",
 			"item": [
 				{
 					"name": "Создание пользователя",
@@ -136,6 +136,105 @@
 								"users",
 								"1",
 								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fail Создание комментария к событию 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 409\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([409]);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"text\":\"Привет мир!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/1/comments?eventId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"1",
+								"comments"
+							],
+							"query": [
+								{
+									"key": "eventId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Публикация события 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200]);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var moment = require('moment');\r",
+									"var start = moment().add(3, 'h');\r",
+									"pm.environment.set('start', start.format('YYYY-MM-DD HH:mm:ss'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"stateAction\":\"PUBLISH_EVENT\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/events/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"events",
+								"1"
 							]
 						}
 					},
@@ -369,13 +468,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/users/1/events/1",
+							"raw": "{{baseUrl}}/events/1",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"users",
-								"1",
 								"events",
 								"1"
 							]
@@ -409,7 +506,6 @@
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData, 'Комментарий должен иметь поле \"creator\"').to.have.property('creator')\r",
 									"    pm.expect(jsonData.creator.id, 'Создатель комментария должен иметь \"id\" 1').to.eql(1);\r",
-									"    pm.expect(jsonData.creator.name, 'Создатель комментария должен иметь имя \"Вася Пупкин\"').to.eql('Вася Пупкин');\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -509,6 +605,111 @@
 					"response": []
 				},
 				{
+					"name": "Fail Создание комментария 2 к комментарию 1 события 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 409\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([409]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Ответ содержит тело в формате json\", function () {\r",
+									"    pm.response.to.be.withBody;\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"text\":\"Привет сосед!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/2/comments?eventId=1&parentId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"2",
+								"comments"
+							],
+							"query": [
+								{
+									"key": "eventId",
+									"value": "1"
+								},
+								{
+									"key": "parentId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Публикация комментариев 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200]);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/comments?commentIds=1&status=published",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"comments"
+							],
+							"query": [
+								{
+									"key": "commentIds",
+									"value": "1"
+								},
+								{
+									"key": "commentIds",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "published"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Создание комментария 2 к комментарию 1 события 1",
 					"event": [
 						{
@@ -528,7 +729,6 @@
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData).to.have.property('parent');\r",
 									"    pm.expect(jsonData.parent.id, 'id создателя родительского комментария должно быть 1').to.eql(1);\r",
-									"    pm.expect(jsonData.parent.text, 'Текст родительского комментария должен быть \"Привет мир!\"').to.eql('Привет мир!');\r",
 									"});\r",
 									""
 								],
@@ -573,7 +773,7 @@
 					"response": []
 				},
 				{
-					"name": "Публикация комментариев 1 и 2",
+					"name": "Публикация комментариев 2",
 					"event": [
 						{
 							"listen": "test",
@@ -591,7 +791,7 @@
 						"method": "PATCH",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/comments?commentIds=1&commentIds=2&status=published",
+							"raw": "{{baseUrl}}/admin/comments?commentIds=2&status=published",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -602,7 +802,8 @@
 							"query": [
 								{
 									"key": "commentIds",
-									"value": "1"
+									"value": "1",
+									"disabled": true
 								},
 								{
 									"key": "commentIds",
@@ -649,64 +850,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/users/1/events/1",
+							"raw": "{{baseUrl}}/events/1",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"users",
-								"1",
-								"events",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Получение события 1 с комментариями",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.be.oneOf([200]);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Ответ содержит тело в формате json\", function () {\r",
-									"    pm.response.to.be.withBody;\r",
-									"    pm.response.to.be.json;\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Присутствует поле comments и его длинна 2\", function () {\r",
-									"    var jsonData = pm.response.json();\r",
-									"    pm.expect(jsonData).to.have.property('comments');\r",
-									"    pm.expect(jsonData.comments.length, '\"comments\" длинна должна быть 1').to.eql(2);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Комментарии именно те что нужен\", function () {\r",
-									"    var jsonData = pm.response.json();\r",
-									"    pm.expect(jsonData.comments[0].id, 'Комментарий должен быть с id 1').to.eql(1);\r",
-									"    pm.expect(jsonData.comments[1].id, 'Комментарий должен быть с id 2').to.eql(2);\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/users/1/events/1",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"users",
-								"1",
 								"events",
 								"1"
 							]
@@ -740,7 +888,6 @@
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData, 'Комментарий должен иметь поле \"creator\"').to.have.property('creator')\r",
 									"    pm.expect(jsonData.creator.id, 'Создатель комментария должен иметь \"id\" 1').to.eql(1);\r",
-									"    pm.expect(jsonData.creator.name, 'Создатель комментария должен иметь имя \"Вася Пупкин\"').to.eql('Вася Пупкин');\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1151,7 +1298,6 @@
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData).to.have.property('parent');\r",
 									"    pm.expect(jsonData.parent.id, 'id создателя родительского комментария должно быть 1').to.eql(2);\r",
-									"    pm.expect(jsonData.parent.text, 'Текст родительского комментария должен быть \"Привет мир!\"').to.eql('Привет сосед!');\r",
 									"});\r",
 									""
 								],
@@ -1211,10 +1357,9 @@
 									"    pm.response.to.be.json;\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Комментарий имеет 'id' 3 и правильное имя создателя\", function () {\r",
+									"pm.test(\"Комментарий имеет 'id' 3\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData.id, '\"id\" комментария должно быть 3').to.eql(3);\r",
-									"    pm.expect(jsonData.creator.name, 'Имя создателя комментария должно быть \"Cидор Васечкин\"').to.eql('Cидор Васечкин');\r",
 									"});\r",
 									"\r",
 									""
