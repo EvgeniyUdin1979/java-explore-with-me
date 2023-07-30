@@ -1,6 +1,7 @@
 package ru.practicum.users.model;
 
 import lombok.*;
+import ru.practicum.comments.model.Comment;
 import ru.practicum.events.model.Event;
 import ru.practicum.request.model.Request;
 
@@ -34,4 +35,7 @@ public class User {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "requester")
     private Set<Request> requests;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "creator")
+    private Set<Comment> comments;
 }

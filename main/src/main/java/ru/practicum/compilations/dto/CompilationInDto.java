@@ -3,8 +3,8 @@ package ru.practicum.compilations.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
-import ru.practicum.compilations.valid.Create;
-import ru.practicum.compilations.valid.Update;
+import ru.practicum.valid.Create;
+import ru.practicum.valid.Update;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;

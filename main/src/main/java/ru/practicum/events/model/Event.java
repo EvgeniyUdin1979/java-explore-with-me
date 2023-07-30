@@ -2,12 +2,14 @@ package ru.practicum.events.model;
 
 import lombok.*;
 import ru.practicum.categories.model.Category;
+import ru.practicum.comments.model.Comment;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.request.model.Request;
 import ru.practicum.users.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -64,6 +66,9 @@ public class Event {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
     @ToString.Exclude
     private Set<Request> requests;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "event")
+    private List<Comment> comments;
 
     @Embedded
     private Location location;

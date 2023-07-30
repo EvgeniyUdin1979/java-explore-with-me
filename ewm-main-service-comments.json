@@ -1,0 +1,972 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "\"Explore With Me\" API сервер",
+    "description": "Documentation \"Explore With Me\" API v1.0.\n   Описание только эндпоинтов связанных с комментариями."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Администрирование комментариев",
+      "description": "Предоставляет администратору возможность получать требуемые комментарии и опубликовать их или отклонить."
+    },
+    {
+      "name": "Взаимодействие с событиями любыми пользователями.",
+      "description": "Предоставляет возможность взаимодействие пользователей с функциями событий."
+    },
+    {
+      "name": "Взаимодействие с комментариями.",
+      "description": "Предоставляет возможность взаимодействие зарегистрированных пользователей с функциями комментариев."
+    }
+  ],
+  "paths": {
+    "/users/{userId}/comments": {
+      "get": {
+        "tags": [
+          "Взаимодействие с комментариями."
+        ],
+        "summary": "Получение своих комментариев пользователем.",
+        "description": "Позволяет пользователю получить свои комментарии на основе заданных условий.",
+        "operationId": "getAllComment",
+        "parameters": [
+          {
+            "name": "rangeStart",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "rangeEnd",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommentOutDto"
+                  }
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Взаимодействие с комментариями."
+        ],
+        "summary": "Добавление комментария пользователем.",
+        "description": "Позволяет пользователю оставлять комментарии к мероприятию, а также участвовать в дискуссии оставляя комментарии к определенному комментарию(parentId). Событие или комментарий к которому добавляется комментарий должны иметь состояние опубликован(PUBLISHED).",
+        "operationId": "addComment",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "parentId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentInDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutDto"
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/comments/{commentId}": {
+      "get": {
+        "tags": [
+          "Взаимодействие с комментариями."
+        ],
+        "summary": "Получение своего комментария пользователем.",
+        "description": "Позволяет пользователю получить свой комментарий.",
+        "operationId": "getCommentById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutDto"
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Взаимодействие с комментариями."
+        ],
+        "summary": "Удаление комментария пользователем.",
+        "description": "Позволяет пользователю удалить комментарий к мероприятию. Он перейдет в статус удален(DELETED). В последующем его можно изменить и дать статус ожидает публикации(PENDING).Администратор не может публиковать удаленные комментарии, а также их нет при получении события.",
+        "operationId": "deleteComment",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutDto"
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Взаимодействие с комментариями."
+        ],
+        "summary": "Изменение комментария пользователем.",
+        "description": "Позволяет пользователю изменять комментарии к мероприятию.Пользователь может изменить текст комментария при этом комментарий перейдет в состояние ожидает публикации(PENDING), но только в случае если он был опубликован(PUBLISHED). Удаленные(DELETED) или отклоненные(REJECT) комментарии можно изменять и при необходимости сменить состояние на ожидает публикации(PENDING). Пользователь не может менять состояние на удален(DELETED), для этого есть ендпоинт удаления.",
+        "operationId": "updateComment",
+        "parameters": [
+          {
+            "name": "text",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutDto"
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/comments": {
+      "get": {
+        "tags": [
+          "Администрирование комментариев"
+        ],
+        "summary": "Получение комментариев администратором.",
+        "description": "Позволяет администратору получить комментарии на основе заданных параметров.",
+        "operationId": "getAllComment_1",
+        "parameters": [
+          {
+            "name": "rangeStart",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "rangeEnd",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          {
+            "name": "commentIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommentOutDto"
+                  }
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Администрирование комментариев"
+        ],
+        "summary": "Обновляет состояние комментария.",
+        "description": "Позволяет администратору изменить состояние комментария на опубликован(PUBLISHED) или отклонен(REJECT). Для этого комментарий должен находиться в состоянии - ожидает публикации(PENDING)",
+        "operationId": "updateCommentsByIdForAdmin",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commentIds",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CommentOutDto"
+                  }
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "tags": [
+          "Взаимодействие с событиями любыми пользователями."
+        ],
+        "summary": "Получение мероприятий пользователем.",
+        "description": "Позволяет пользователю получить опубликованные мероприятия на основе заданных условий. К мероприятиям добавляются все опубликованные комментарии.",
+        "operationId": "getAllForPublic",
+        "parameters": [
+          {
+            "name": "text",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categories",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          {
+            "name": "paid",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "rangeStart",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "rangeEnd",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "onlyAvailable",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventOutShortDto"
+                  }
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Взаимодействие с событиями любыми пользователями."
+        ],
+        "summary": "Получение мероприятия пользователем.",
+        "description": "Позволяет пользователю получить опубликованное мероприятие. К мероприятию добавляются все опубликованные комментарии.",
+        "operationId": "getEventByEventIdForPublic",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventOutFullDto"
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/comments/{commentId}": {
+      "get": {
+        "tags": [
+          "Администрирование комментариев"
+        ],
+        "summary": "Получение комментария администратором.",
+        "description": "Позволяет администратору получить требуемый комментарий по id.",
+        "operationId": "getCommentById_1",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentOutDto"
+                }
+              }
+            }
+          },
+          "4xx": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CommentInDto": {
+        "required": [
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "CommentOutDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "text": {
+            "type": "string"
+          },
+          "creator": {
+            "$ref": "#/components/schemas/UserOutShortDto"
+          },
+          "eventId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/CommentOutShortDto"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PUBLISHED",
+              "REJECT",
+              "DELETED"
+            ]
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedOn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommentOutShortDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "text": {
+            "type": "string"
+          },
+          "creator": {
+            "$ref": "#/components/schemas/UserOutShortDto"
+          }
+        }
+      },
+      "UserOutShortDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "CategoryOutDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "EventOutShortDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "annotation": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategoryOutDto"
+          },
+          "confirmedRequests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "eventDate": {
+            "type": "string"
+          },
+          "initiator": {
+            "$ref": "#/components/schemas/UserOutShortDto"
+          },
+          "paid": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "views": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentOutDto"
+            }
+          }
+        }
+      },
+      "EventOutFullDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "annotation": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategoryOutDto"
+          },
+          "confirmedRequests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdOn": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "eventDate": {
+            "type": "string"
+          },
+          "initiator": {
+            "$ref": "#/components/schemas/UserOutShortDto"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "paid": {
+            "type": "boolean"
+          },
+          "participantLimit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "publishedOn": {
+            "type": "string"
+          },
+          "requestModeration": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PUBLISHED",
+              "REJECT",
+              "CANCELED"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "views": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentOutDto"
+            }
+          }
+        }
+      },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "format": "float"
+          },
+          "lon": {
+            "type": "number",
+            "format": "float"
+          }
+        }
+      }
+    }
+  }
+}

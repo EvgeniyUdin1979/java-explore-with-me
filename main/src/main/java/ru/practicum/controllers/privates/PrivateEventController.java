@@ -1,5 +1,6 @@
 package ru.practicum.controllers.privates;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +22,7 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/users")
 @Validated
+@Hidden
 public class PrivateEventController {
 
     private final EventService service;

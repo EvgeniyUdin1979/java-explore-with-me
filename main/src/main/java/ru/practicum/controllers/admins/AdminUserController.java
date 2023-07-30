@@ -1,5 +1,6 @@
 package ru.practicum.controllers.admins;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/admin/users")
 @Validated
+@Hidden
 public class AdminUserController {
 
     private final UserService userService;

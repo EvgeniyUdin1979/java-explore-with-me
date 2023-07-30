@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import ru.practicum.categories.model.Category;
 import ru.practicum.categories.util.CategoryMapping;
+import ru.practicum.comments.model.CommentStatus;
+import ru.practicum.comments.util.CommentMapper;
 import ru.practicum.events.dto.*;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.State;
@@ -61,6 +63,10 @@ public class EventMapping {
                 .state(event.getState())
                 .title(event.getTitle())
                 .views(views)
+                .comments(event.getComments() == null ? List.of() : event.getComments().stream()
+                        .filter(c -> c.getStatus() == CommentStatus.PUBLISHED)
+                        .map(CommentMapper::mapToOut)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -152,6 +158,10 @@ public class EventMapping {
                 .paid(event.isPaid())
                 .title(event.getTitle())
                 .views(views)
+                .comments(event.getComments() == null ? List.of() : event.getComments().stream()
+                        .filter(c -> c.getStatus() == CommentStatus.PUBLISHED)
+                        .map(CommentMapper::mapToOut)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
