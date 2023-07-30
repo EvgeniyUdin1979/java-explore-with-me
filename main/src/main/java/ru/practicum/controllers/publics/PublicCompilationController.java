@@ -1,5 +1,6 @@
 package ru.practicum.controllers.publics;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.Optional;
 @Slf4j
 @RestController
 @RequestMapping("/compilations")
+@Hidden
 public class PublicCompilationController {
     private final CompilationService service;
 

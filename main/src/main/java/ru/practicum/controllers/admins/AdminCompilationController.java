@@ -1,5 +1,6 @@
 package ru.practicum.controllers.admins;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import ru.practicum.valid.Update;
 @Slf4j
 @RestController
 @RequestMapping("/admin/compilations")
+@Hidden
 public class AdminCompilationController {
 
     private final CompilationService service;

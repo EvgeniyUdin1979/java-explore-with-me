@@ -1,10 +1,18 @@
 package ru.practicum.controllers.admins;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.advices.ApiError;
 import ru.practicum.comments.dto.CommentOutDto;
 import ru.practicum.comments.model.CommentStatus;
 import ru.practicum.comments.model.CommentsSearchParams;
@@ -23,6 +31,9 @@ import java.util.Optional;
 @Slf4j
 @RequestMapping("/admin")
 @Validated
+@Tag(
+        name = "Администрирование комментариев",
+        description = "Предоставляет администратору возможность получать требуемые комментарии и опубликовать их или отклонить.")
 public class AdminCommentController {
     private final CommentService service;
 
@@ -32,6 +43,18 @@ public class AdminCommentController {
     }
 
     @GetMapping("/comments/{commentId}")
+    @Operation(
+            summary = "Получение комментария администратором.",
+            description = "Позволяет администратору получить требуемый комментарий по id."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Successful operation",
+                    content = @Content(schema = @Schema(implementation = CommentOutDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "4xx",
+                    description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ApiError.class), mediaType = "application/json"))
+    })
     public CommentOutDto getCommentById(@Positive(message = "{validation.commentIdPositive}")
                                         @PathVariable(value = "commentId") long commentId) {
         CommentOutDto result = service.getCommentByIdForAdmin(commentId);
@@ -40,6 +63,18 @@ public class AdminCommentController {
     }
 
     @GetMapping("/comments")
+    @Operation(
+            summary = "Получение комментариев администратором.",
+            description = "Позволяет администратору получить комментарии на основе заданных параметров."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Successful operation",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = CommentOutDto.class)), mediaType = "application/json")),
+            @ApiResponse(responseCode = "4xx",
+                    description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ApiError.class), mediaType = "application/json"))
+    })
     public List<CommentOutDto> getAllComment(@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                                              @PastOrPresent(message = "{validation.rangeStartPastOrPresent}")
                                              @RequestParam(value = "rangeStart", required = false)
@@ -70,8 +105,21 @@ public class AdminCommentController {
     }
 
     @PatchMapping("/comments")
-    public List<CommentOutDto> updateCommentByIdForAdmin(@RequestParam(value = "status") String status,
-                                                         @RequestParam(value = "commentIds") List<Long> commentIds) {
+    @Operation(
+            summary = "Обновляет состояние комментария.",
+            description = "Позволяет администратору изменить состояние комментария на опубликован(PUBLISHED) или отклонен(REJECT). " +
+                    "Для этого комментарий должен находиться в состоянии - ожидает публикации(PENDING)"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Successful operation",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = CommentOutDto.class)), mediaType = "application/json")),
+            @ApiResponse(responseCode = "4xx",
+                    description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ApiError.class), mediaType = "application/json"))
+    })
+    public List<CommentOutDto> updateCommentsByIdForAdmin(@RequestParam(value = "status") String status,
+                                                          @RequestParam(value = "commentIds") List<Long> commentIds) {
         List<CommentOutDto> result = service.updateCommentByIdForAdmin(commentIds, status);
         log.info("Изменен статус комментарий для админа {}.", result);
         return result;

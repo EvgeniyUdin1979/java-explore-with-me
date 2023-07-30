@@ -1,5 +1,6 @@
 package ru.practicum.controllers.admins;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequestMapping("/admin/events")
 @Validated
+@Hidden
 public class AdminEventController {
     private final EventService eventService;
 

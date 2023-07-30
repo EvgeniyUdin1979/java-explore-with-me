@@ -1,9 +1,17 @@
 package ru.practicum.controllers.publics;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.advices.ApiError;
 import ru.practicum.client.BaseClient;
 import ru.practicum.client.SendParams;
 import ru.practicum.events.dto.EventOutFullDto;
@@ -26,6 +34,9 @@ import java.util.Optional;
 @Slf4j
 @RequestMapping("/events")
 @Validated
+@Tag(
+        name = "Взаимодействие с событиями любыми пользователями.",
+        description = "Предоставляет возможность взаимодействие пользователей с функциями событий.")
 public class PublicEventController {
 
     private final EventService service;
@@ -38,6 +49,19 @@ public class PublicEventController {
     }
 
     @GetMapping
+    @Operation(
+            summary = "Получение мероприятий пользователем.",
+            description = "Позволяет пользователю получить опубликованные мероприятия на основе заданных условий. " +
+                    "К мероприятиям добавляются все опубликованные комментарии."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Successful operation",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = EventOutShortDto.class)), mediaType = "application/json")),
+            @ApiResponse(responseCode = "4xx",
+                    description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ApiError.class), mediaType = "application/json"))
+    })
     public List<EventOutShortDto> getAllForPublic(
             @RequestParam("text") Optional<String> text,
             @RequestParam("categories") Optional<List<Long>> categories,
@@ -82,6 +106,19 @@ public class PublicEventController {
     }
 
     @GetMapping("/{eventId}")
+    @Operation(
+            summary = "Получение мероприятия пользователем.",
+            description = "Позволяет пользователю получить опубликованное мероприятие. " +
+                    "К мероприятию добавляются все опубликованные комментарии."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Successful operation",
+                    content = @Content(schema = @Schema(implementation = EventOutFullDto.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "4xx",
+                    description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ApiError.class), mediaType = "application/json"))
+    })
     public EventOutFullDto getEventByEventIdForPublic(
             @Positive(message = "validation.eventIdPositive")
             @PathVariable("eventId") long eventId,

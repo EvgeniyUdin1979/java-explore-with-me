@@ -1,5 +1,6 @@
 package ru.practicum.controllers.publics;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +16,7 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/categories")
 @Validated
+@Hidden
 public class PublicCategoriesController {
 
     private final CategoryService service;
